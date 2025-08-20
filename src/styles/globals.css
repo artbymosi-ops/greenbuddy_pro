@@ -200,3 +200,50 @@ body { background: var(--mosi-bg); color: var(--mosi-text); }
 .plant3d .pot-fill    { fill: url(#potG); }
 .plant3d .pot-rim     { fill: url(#rimG); }
 .plant3d .soil-fill   { fill: url(#soilG); }
+/* Calendar styles – MosiRare */
+.cal-toolbar{
+  display:flex; gap:8px; align-items:center; margin:8px 0 14px;
+}
+.cal-month{ font-weight:700; font-size:20px; color:var(--mosi-accent); margin-right:auto; }
+.cal-grid{
+  display:grid; grid-template-columns: repeat(7,1fr); gap:6px;
+  background:transparent;
+}
+.cal-h{
+  text-align:center; font-weight:600; color:var(--mosi-accent); padding:6px 0;
+}
+.cal-cell{
+  background: var(--mosi-surface);
+  border:1px solid rgba(47,110,61,.15);
+  border-radius:12px; min-height:72px; padding:6px 8px; cursor:pointer;
+  transition: transform .06s ease, box-shadow .12s ease;
+}
+.cal-cell:hover{ transform: translateY(-1px); box-shadow:0 4px 12px rgba(47,110,61,.12); }
+.cal-cell.muted{ opacity:.55 }
+.cal-cell.sel{ outline:2px solid var(--mosi-accent); }
+
+.cal-date{ font-weight:600; font-size:13px; }
+.cal-dots{ display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
+.dot{
+  width:8px; height:8px; border-radius:50%;
+  background: var(--mosi-green-2);
+  box-shadow: inset 0 0 0 1px var(--mosi-green-3);
+}
+.more{ font-size:11px; color:var(--mosi-accent); }
+
+.ev-list{ list-style:none; padding:0; margin:0 0 8px; display:flex; flex-direction:column; gap:8px; }
+.ev-list li{
+  display:flex; justify-content:space-between; gap:8px; align-items:center;
+  padding:10px 12px; background: #fff; border-radius:12px;
+  border:1px solid rgba(47,110,61,.08);
+}
+.ev-list li.empty{ justify-content:center; color:#667; background:transparent; border:1px dashed rgba(47,110,61,.25); }
+
+.ev-title{ font-weight:600; }
+.ev-note{ font-size:12px; color:#5a6; }
+
+.ev-form{ display:flex; gap:8px; flex-wrap:wrap; }
+.input{
+  background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:10px;
+  padding:10px 12px; min-width:220px; flex:1;
+}
