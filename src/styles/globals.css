@@ -171,3 +171,32 @@ button{font:inherit}
 @keyframes leafPulse { 0%{filter:none} 50%{filter:brightness(1.2)} 100%{filter:none} }
 .leaf-shimmer{ animation: leafShimmer 1s ease; }
 @keyframes leafShimmer { 0%{filter:brightness(1)} 50%{filter:brightness(1.35)} 100%{filter:brightness(1)} }
+/* MosiRare theme */
+:root {
+  --mosi-bg: #EAF6E3;
+  --mosi-surface: #F4FAEE;
+  --mosi-text: #132015;
+
+  --mosi-green: #2F6E3D;
+  --mosi-green-2: #7FBF6B;
+  --mosi-green-3: #4F9156;
+
+  --mosi-terracotta: #C56A3C;
+  --mosi-terracotta-2: #8C4A2A;
+
+  --mosi-accent: #2F6E3D;
+}
+
+/* aplikuj na celé UI */
+body { background: var(--mosi-bg); color: var(--mosi-text); }
+.card { background: var(--mosi-surface); border-radius: 18px; padding: 16px; }
+.btn { background: var(--mosi-accent); color:white; border-radius: 14px; padding:12px 18px; }
+.btn.ghost { background: transparent; color: var(--mosi-accent); border:1px solid var(--mosi-accent); }
+
+/* Plant3D – upravené farby cez CSS premenné */
+.plant3d .leaf-fill   { fill: var(--mosi-green-2); }
+.plant3d .leaf-stroke { stroke: var(--mosi-green-3); }
+.plant3d .stem-fill   { fill: var(--mosi-green); }
+.plant3d .pot-fill    { fill: url(#potG); }
+.plant3d .pot-rim     { fill: url(#rimG); }
+.plant3d .soil-fill   { fill: url(#soilG); }
