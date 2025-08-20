@@ -1,25 +1,23 @@
-import Link from 'next/link'
+import Link from 'next/link';
+import Layout from '@/components/Layout';
 
-export default function Landing(){
+export default function Home() {
   return (
-    <>
-      <header className="app">
-        <div className="brand"><span style={{fontSize:26}}>🌱</span><b>Greenbuddy</b></div>
-        <nav><Link className="link" href="/auth/login">Anmelden</Link></nav>
-      </header>
-      <main className="app">
-        <section className="card" style={{textAlign:'center', padding:'60px 20px'}}>
-          <h1 style={{fontSize:42, margin:'6px 0'}}>Greenbuddy – deine lebendige Monstera</h1>
-          <p style={{opacity:.85, maxWidth:680, margin:'0 auto 14px'}}>
-            Pflege sie wie ein Tamagotchi: Gießen, Düngen, Umtopfen, Sprühen. Sie wächst, freut sich,
-            wird traurig – und berät dich (AI) bei allen Pflanzenfragen. Mit Kalender, Tagebuch, Forum und mehr.
-          </p>
-          <Link className="btn" href="/auth/login">Start</Link>
-          <div style={{marginTop:14}}>
-            <Link className="small muted" href="/admin/login">Admin-Login</Link>
+    <Layout>
+      <section className="hero">
+        <div>
+          <div className="badge">Neu • Beta</div>
+          <h1 className="title">Greenbuddy – deine interaktive Zimmerpflanze</h1>
+          <p className="subtitle">Gieße, dünge, sprühe, verpflanze. Lerne über Pflege, erkenne Schädlinge – mit AI-Coach direkt in der App.</p>
+          <div style={{display:'flex',gap:12,marginTop:18}}>
+            <Link href="/app"><a className="btn">Start</a></Link>
+            <Link href="/auth/login"><a className="btn ghost">Anmelden</a></Link>
           </div>
-        </section>
-      </main>
-    </>
-  )
+        </div>
+        <div className="card" style={{display:'grid',placeItems:'center'}}>
+          <img src="https://em-content.zobj.net/source/microsoft-teams/363/seedling_1f331.png" alt="" width="220" height="220" />
+        </div>
+      </section>
+    </Layout>
+  );
 }
