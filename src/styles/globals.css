@@ -257,3 +257,5 @@ body { background: var(--mosi-bg); color: var(--mosi-text); }
 .ba-labels{ position:absolute; left:12px; right:12px; top:12px; display:flex; justify-content:space-between; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.6); font-weight:700; }
 
 /* Chart: jemný text a farby dedia z témy */
+.btn.danger { background:#c0392b; }
+.btn.danger:hover { filter:brightness(1.05); }
