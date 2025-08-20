@@ -1,23 +1,27 @@
-import Link from 'next/link';
 import Layout from '@/components/Layout';
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <Layout>
-      <section className="hero">
-        <div>
-          <div className="badge">Neu • Beta</div>
-          <h1 className="title">Greenbuddy – deine interaktive Zimmerpflanze</h1>
-          <p className="subtitle">Gieße, dünge, sprühe, verpflanze. Lerne über Pflege, erkenne Schädlinge – mit AI-Coach direkt in der App.</p>
-          <div style={{display:'flex',gap:12,marginTop:18}}>
-            <Link href="/app"><a className="btn">Start</a></Link>
-            <Link href="/auth/login"><a className="btn ghost">Anmelden</a></Link>
+    <>
+      <Layout title="">
+        <div className="hero">
+          <div className="card">
+            <h1>Greenbuddy – deine <span style={{color:'var(--brand)'}}>virtuelle Monstera</span> ♥</h1>
+            <p>Pflege, lerne, spiele. Dein Buddy reagiert auf Gießen, Düngen, Sprühen und Umtopfen – wächst, freut sich oder wird traurig. Mit Chat-Tipps & Mini-Animationen.</p>
+            <div style={{display:'flex',gap:10}}>
+              <Link className="btn" href="/plant">Start</Link>
+              <Link className="btn btn-ghost" href="/auth/login">Anmelden</Link>
+            </div>
+            <div style={{marginTop:8,fontSize:12,opacity:.7}}>
+              Admin? <Link href="/admin/login">hier einloggen</Link>
+            </div>
+          </div>
+          <div className="card">
+            <img alt="Greenbuddy teaser" src="https://images.unsplash.com/photo-1524594227084-41a4a6f6e196?q=80&w=900&auto=format&fit=crop" style={{width:'100%',borderRadius:16}} />
           </div>
         </div>
-        <div className="card" style={{display:'grid',placeItems:'center'}}>
-          <img src="https://em-content.zobj.net/source/microsoft-teams/363/seedling_1f331.png" alt="" width="220" height="220" />
-        </div>
-      </section>
-    </Layout>
+      </Layout>
+    </>
   );
 }
