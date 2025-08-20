@@ -93,3 +93,9 @@ function toDataURL(file){
     r.readAsDataURL(file);
   });
 }
+<AIChat plantContext={{
+  species: "Monstera deliciosa",
+  light: "hell, indirekt",
+  watering: "alle 5 Tage",
+  lastActions: "gesprüht gestern, gedüngt vor 2 Wochen"
+}}/>
