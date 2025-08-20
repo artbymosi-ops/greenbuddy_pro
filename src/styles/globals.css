@@ -247,3 +247,5 @@ body { background: var(--mosi-bg); color: var(--mosi-text); }
   background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:10px;
   padding:10px 12px; min-width:220px; flex:1;
 }
+.ev-tag{ display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; border-radius:6px; color:#0a0; margin-right:8px; }
