@@ -1,21 +1,13 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@/components/*": ["src/components/*"],
-      "@/pages/*": ["src/pages/*"],
-      "@/styles/*": ["src/styles/*"],
-      "@/lib/*": ["src/lib/*"],
-      "@/utils/*": ["src/utils/*"]
-    }
-  },
-  "exclude": ["node_modules"]{
-  "compilerOptions": {
     "baseUrl": "src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["*"],
+      "@components/*": ["components/*"],
+      "@pages/*": ["pages/*"],
+      "@utils/*": ["utils/*"],
+      "@lib/*": ["lib/*"]
     }
   },
-  "exclude": ["node_modules", ".next", "out"]
+  "exclude": ["node_modules"]
 }
