@@ -10,5 +10,12 @@
       "@/utils/*": ["src/utils/*"]
     }
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"]{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    }
+  },
+  "exclude": ["node_modules", ".next", "out"]
 }
