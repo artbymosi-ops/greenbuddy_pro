@@ -1,51 +1,40 @@
 import { useState } from 'react';
 import Link from 'next/link';
-import { FiMenu, FiX, FiCalendar, FiBookOpen, FiMessageCircle, FiInbox, FiSettings, FiHome, FiExternalLink } from 'react-icons/fi';
 
-export default function Layout({ children }) {
+export default function Layout({ title = 'Greenbuddy', children }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <header style={{position:'sticky',top:0,zIndex:40,background:'rgba(13,17,23,.7)',backdropFilter:'blur(8px)',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-        <div className="container" style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 24px'}}>
-          <Link href="/"><a style={{display:'flex',gap:10,alignItems:'center',fontWeight:800,fontSize:22}}>
-            <span style={{fontSize:28}}>🌱</span> Greenbuddy
-          </a></Link>
-          <button className="btn ghost" onClick={()=>setOpen(true)}><FiMenu size={20} /> Menü</button>
+      <nav className="nav">
+        <div className="nav-inner container">
+          <Link href="/" className="brand">
+            <span className="brand-badge" />
+            <span>Greenbuddy</span>
+          </Link>
+          <button className="menu-btn" onClick={() => setOpen(v => !v)} aria-label="Menu">
+            ☰
+          </button>
+          <div className={`menu ${open ? 'open' : ''}`}>
+            <ul onClick={()=>setOpen(false)}>
+              <li><Link href="/plant">Mein Greenbuddy</Link></li>
+              <li><Link href="/calendar">Kalender</Link></li>
+              <li><Link href="/diary">Tagebuch</Link></li>
+              <li><Link href="/forum">Forum</Link></li>
+              <li><Link href="/inbox">Inbox</Link></li>
+              <li><Link href="/account">Konto</Link></li>
+              <li><a href="https://tvoj-eshop.tld" target="_blank">Shop</a></li>
+              <li><a href="https://tvoj-eshop.tld/blog" target="_blank">Blog</a></li>
+              <li><Link href="/admin">Admin</Link></li>
+              <li><Link href="/auth/login">Abmelden</Link></li>
+            </ul>
+          </div>
         </div>
-      </header>
-
-      <div className={`nav ${open?'open':''}`}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
-          <div style={{fontWeight:800, fontSize:20}}>Menü</div>
-          <button className="btn ghost" onClick={()=>setOpen(false)}><FiX size={20}/> Schließen</button>
-        </div>
-        <div className="hr" />
-        <nav className="grid" style={{gap:10}}>
-          <NavLink href="/app" icon={<FiHome/>} label="Start (Pflanze)" onClick={()=>setOpen(false)} />
-          <NavLink href="/calendar" icon={<FiCalendar/>} label="Kalender" onClick={()=>setOpen(false)} />
-          <NavLink href="/diary" icon={<FiBookOpen/>} label="Tagebuch" onClick={()=>setOpen(false)} />
-          <NavLink href="/forum" icon={<FiMessageCircle/>} label="Forum" onClick={()=>setOpen(false)} />
-          <NavLink href="/inbox" icon={<FiInbox/>} label="Inbox (Gutscheine)" onClick={()=>setOpen(false)} />
-          <NavLink href="/account" icon={<FiSettings/>} label="Konto" onClick={()=>setOpen(false)} />
-          <a className="btn ghost" href="https://tvoj-eshop.tld" target="_blank" rel="noreferrer"><FiExternalLink/> Shop</a>
-          <a className="btn ghost" href="https://tvoj-eshop.tld/blog" target="_blank" rel="noreferrer"><FiExternalLink/> Blog</a>
-        </nav>
-      </div>
-      <div className={`nav-backdrop ${open?'show':''}`} onClick={()=>setOpen(false)} />
-
-      <main className="container" style={{padding:'26px 24px'}}>{children}</main>
+      </nav>
+      <main className="main container">
+        {title ? <div className="card" style={{marginBottom:12}}><h2 className="title">{title}</h2></div> : null}
+        {children}
+      </main>
     </>
-  );
-}
-
-function NavLink({href, icon, label, onClick}) {
-  return (
-    <Link href={href}>
-      <a className="btn" style={{display:'flex',gap:10,alignItems:'center'}} onClick={onClick}>
-        <span style={{display:'grid',placeItems:'center'}}>{icon}</span> {label}
-      </a>
-    </Link>
   );
 }
