@@ -1,0 +1,118 @@
+:root{
+  --bg1:#0b1116;
+  --bg2:#0e141b;
+  --panel:#121a22cc;
+  --pot:#6c3e2b;
+  --potTop:#7a4631;
+  --leaf:#38d37b;
+  --leaf2:#32c272;
+  --stem:#2ea866;
+  --ink:#1b1f23;
+  --glow:#7ef6c8;
+}
+
+.plant{
+  position:relative;
+  display:grid;
+  place-items:center;
+  width:min(520px, 92vw);
+  padding:18px 18px 6px;
+  margin-inline:auto;
+  background:linear-gradient(180deg,var(--panel),transparent);
+  border:1px solid #1d2a34;
+  border-radius:26px;
+  box-shadow:0 10px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+  transform:translateZ(0) scale(var(--scale,1));
+  animation:float 6s ease-in-out infinite;
+}
+
+.svg{ width:100%; height:auto; overflow:visible; filter:drop-shadow(0 14px 40px rgba(0,0,0,.35)); }
+.shadow{ fill:#000; opacity:.25; filter:blur(2px); }
+
+.pot rect:first-child{ fill:var(--pot); }
+.pot rect:last-child{ fill:var(--potTop); }
+.stem{ fill:var(--stem); }
+
+.leaves .leaf ellipse{
+  fill:var(--leaf);
+  filter:drop-shadow(0 4px 0 rgba(0,0,0,.12));
+}
+.leaves .leaf path{ opacity:.6; }
+.leaf2 ellipse{ fill:var(--leaf2); }
+
+/* vánok + reakcia na akcie */
+.leaf{ transform-origin:50% 80%; animation:leafBreeze 5.5s ease-in-out infinite; }
+.actionWater .leaf{ animation:leafWave .9s ease-in-out; }
+.actionFeed .leaf{ animation:leafPop .85s ease-out; }
+.actionSpray .leaf{ animation:leafMist .9s ease-in-out; }
+
+/* kvetináč sa pri presadení zatrasie */
+.actionRepot .pot{ animation:shake .6s ease-in-out; }
+
+/* Level-up prstenec */
+.ring{
+  position:absolute; inset:auto 20% 6% 20%;
+  height:18px; border-radius:999px;
+  background:radial-gradient(ellipse at 50% 50%, var(--glow), transparent 60%);
+  animation:pulse 1.1s ease-out;
+}
+
+/* meta info */
+.meta{ position:absolute; bottom:8px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.badge{
+  font-size:.85rem; color:#d9fbe5; background:#0e161d; border:1px solid #193040;
+  padding:6px 10px; border-radius:999px; backdrop-filter:blur(6px);
+  box-shadow:0 6px 16px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+/* FX vrstva */
+.fxLayer{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+
+/* kvapky (water) */
+.drop{
+  --x: calc(50% + (var(--i) - 3)*10%);
+  position:absolute; left:var(--x); top:8%;
+  width:10px; height:14px; border-radius:6px 6px 10px 10px;
+  background:linear-gradient(#aaf,#5ad);
+  animation:drop 1s ease-in forwards;
+  filter:blur(.2px);
+}
+
+/* hmla (spray) */
+.mist{
+  position:absolute; left:55%; top:10%; width:42%; height:30%;
+  background:radial-gradient(ellipse at left, rgba(255,255,255,.45), rgba(255,255,255,0) 70%);
+  filter:blur(6px); opacity:.0; animation:mist .9s ease-in-out forwards;
+}
+
+/* trblietky (feed) */
+.sparkle{
+  --x: calc(50% + (var(--i) - 4)*9%);
+  --d: calc(.4s + var(--i)*.03s);
+  position:absolute; left:var(--x); top:30%;
+  width:6px; height:6px; border-radius:2px;
+  background:radial-gradient(circle at 30% 30%, #fff, #9bffd9 40%, transparent 70%);
+  opacity:0; transform:translateY(0) scale(.5);
+  animation:spark var(--d) ease-out forwards;
+}
+
+/* prach (repot) */
+.dust{
+  --x: calc(50% + (var(--i) - 3)*12%);
+  position:absolute; left:var(--x); bottom:26%;
+  width:6px; height:6px; border-radius:50%; background:#8b5a43;
+  opacity:.8; animation:dust 1s ease-out forwards;
+}
+
+/* animácie */
+@keyframes float { 0%,100%{ transform:translateY(0) scale(var(--scale,1)); } 50%{ transform:translateY(-4px) scale(var(--scale,1)); } }
+@keyframes leafBreeze { 0%,100%{ transform:rotate(-1deg);} 50%{transform:rotate(1deg);} }
+@keyframes leafWave { 0%{ transform:rotate(0);} 30%{transform:rotate(-7deg);} 70%{transform:rotate(6deg);} 100%{transform:rotate(0);} }
+@keyframes leafPop { 0%{ transform:scale(1);} 40%{transform:scale(1.06);} 100%{transform:scale(1);} }
+@keyframes leafMist { 0%{ filter:brightness(1);} 40%{filter:brightness(1.08);} 100%{filter:brightness(1);} }
+@keyframes shake { 0%,100%{ transform:translateX(0);} 25%{transform:translateX(-6px);} 50%{transform:translateX(4px);} 75%{transform:translateX(-2px);} }
+@keyframes pulse { from{opacity:.9; transform:scaleX(.7);} to{opacity:0; transform:scaleX(1.3);} }
+@keyframes drop { 0%{ transform:translateY(-12px); opacity:.9;} 90%{opacity:.95;} 100%{ transform:translateY(200px); opacity:0;} }
+@keyframes mist { 0%{ opacity:0; transform:translateX(-20px);} 40%{opacity:.8;} 100%{opacity:0; transform:translateX(10px);} }
+@keyframes spark { 0%{opacity:0; transform:translateY(0) scale(.4);} 40%{opacity:1;} 100%{opacity:0; transform:translateY(-30px) scale(1);} }
+@keyframes dust { 0%{ transform:translateY(0) scale(.9); opacity:.9;} 100%{ transform:translateY(-28px) scale(1.1); opacity:0; } }
