@@ -71,8 +71,19 @@ export default function PlantPage() {
         setHydration((v) => Math.min(100, v + 10));
       },
       14
-    );
+    // v handleroch len pridaj setAction(...):
+const water = ()=>{ setSt(s=>({...s, hydration:Math.min(100,s.hydration+18)})); addXp(6); setAction("water"); };
+const feed  = ()=>{ setSt(s=>({...s, nutrients:Math.min(100,s.nutrients+14)})); addXp(6); setAction("feed"); };
+const spray = ()=>{ setSt(s=>({...s, spray:Math.min(100,s.spray+12)}));     addXp(6); setAction("spray"); };
+const repot = ()=>{ setSt(s=>({...s, nutrients:Math.min(100,s.nutrients+10), hydration:Math.max(60,s.hydration-8)})); addXp(10); setAction("repot"); };
+  );
+  
+// hore nad return:
+const [action, setAction] = useState(""); // "water" | "feed" | "spray" | "repot"
 
+
+// v JSX:
+<Plant state={st} action={action} onAnimEnd={()=>setAction("")} pulse={pulse} />
   return (
     <Layout title="Greenbuddy – Tamagotchi">
       <div className="container">
