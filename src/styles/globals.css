@@ -249,3 +249,11 @@ body { background: var(--mosi-bg); color: var(--mosi-text); }
 }
 .ev-tag{ display:inline-flex; align-items:center; justify-content:center;
   width:22px; height:22px; border-radius:6px; color:#0a0; margin-right:8px; }
+/* Before/After slider */
+.ba-wrap{ position:relative; border-radius:14px; overflow:hidden; background:#0001; }
+.ba-img{ width:100%; height:100%; object-fit:cover; display:block; }
+.ba-after{ position:absolute; inset:0 0 0 auto; overflow:hidden; border-right:2px solid rgba(255,255,255,.8); }
+.ba-range{ position:absolute; left:0; right:0; bottom:8px; width:60%; margin:0 auto; }
+.ba-labels{ position:absolute; left:12px; right:12px; top:12px; display:flex; justify-content:space-between; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.6); font-weight:700; }
+
+/* Chart: jemný text a farby dedia z témy */
