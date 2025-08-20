@@ -1,51 +1,42 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
-export default function Plant({ state, onPulse=false }) {
-  // state: {level, mood, hydration, nutrients, spray, size}
-  const color = state.mood==='sad' ? '#84cc16' : '#22c55e';
-  const face = state.mood==='sad' ? 'M12 18 q8 6 16 0' : 'M12 22 q8 -6 16 0';
-  const size = 0.9 + (state.size ?? 0) * 0.12; // rast s levelom
+export default function Plant({ mood='happy', level=1, onBlink }) {
+  const faceRef = useRef(null);
+  useEffect(()=>{ // malé žmurknutie občas
+    const t = setInterval(()=>{
+      if(faceRef.current){ faceRef.current.classList.add('blink'); setTimeout(()=>faceRef.current?.classList.remove('blink'),120); }
+    }, 3000 + Math.random()*2000);
+    return ()=>clearInterval(t);
+  },[]);
 
-  const pot = useMemo(()=>(
-    <motion.path d="M4 44 h56 a6 6 0 0 1 6 6 v6 a14 14 0 0 1 -14 14 h-40 a14 14 0 0 1 -14 -14 v-6 a6 6 0 0 1 6 -6 z"
-      fill="#5b3b2e" initial={false}/>
-  ),[]);
+  const scale = useMemo(()=> 1 + (level-1)*0.04, [level]);
+
+  const fillLeaf = mood==='sad' ? '#86a87d' : '#37b279';
+  const fillPot  = '#5c3f32';
 
   return (
-    <div style={{display:'grid',placeItems:'center'}}>
-      <motion.svg width="320" height="260" viewBox="0 0 80 60"
-        initial={{scale:0.9, opacity:0}}
-        animate={{scale:1, opacity:1}}
-        transition={{type:'spring', stiffness:120, damping:12}}>
+    <div className="plant grow" style={{transform:`scale(${scale})`}}>
+      <svg width="320" height="260" viewBox="0 0 320 260" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Monstera">
         {/* tieň */}
-        <motion.ellipse cx="40" cy="52" rx="22" ry="4" fill="rgba(0,0,0,.25)" />
+        <ellipse cx="160" cy="230" rx="110" ry="18" fill="black" opacity=".25"/>
         {/* kvetináč */}
-        {pot}
+        <rect x="60" y="150" width="200" height="54" rx="14" fill={fillPot}/>
+        <rect x="50" y="140" width="220" height="16" rx="8" fill="#7b5646"/>
         {/* stonka */}
-        <motion.rect x="38" y="18" width="4" height="24" rx="2" fill="#15803d"
-          animate={onPulse?{scaleY:[1,1.1,1]}:{}} transition={{duration:.35}}/>
-        {/* listy */}
-        <AnimatePresence>
-          <motion.path
-            key={`leaf-L-${state.level}`}
-            d="M30 20 q-12 8 0 16 q14 -4 10 -14 q-6 -8 -10 -2 z"
-            fill={color}
-            initial={{scale:.8, opacity:.0, rotate:-12, transformOrigin:'40% 40%'}}
-            animate={{scale:1, opacity:1, rotate:0}}
-            exit={{opacity:0}}
-            transition={{type:'spring', stiffness:130, damping:10}}
-          />
-        </AnimatePresence>
-        <motion.path d="M50 18 q14 6 8 18 q-14 2 -16 -8 q2 -10 8 -10 z"
-          fill={color}
-          animate={onPulse?{scale:[1,1.06,1]}:{}}
-          transition={{duration:.35}} />
-        {/* tvárička */}
-        <motion.circle cx="34" cy="40" r="1.2" fill="#0b0b0b"/>
-        <motion.circle cx="46" cy="40" r="1.2" fill="#0b0b0b"/>
-        <motion.path d={face} stroke="#0b0b0b" strokeWidth="1.5" fill="none" />
-      </motion.svg>
+        <rect x="156" y="90" width="8" height="60" rx="4" fill="#2e8a55"/>
+        {/* listy (monstera tvar – zjednodušené) */}
+        <g>
+          <path d="M130 110c-30-40 30-70 58-40 20 22-15 52-30 56-12 4-28-4-28-16z" fill={fillLeaf}/>
+          <path d="M196 120c10-28 52-26 62 2 10 30-34 48-54 36-14-8-14-30-8-38z" fill={fillLeaf}/>
+          <path d="M168 100c-8-24 24-42 44-26 22 18-2 44-18 46-12 2-22-6-26-20z" fill={fillLeaf}/>
+        </g>
+        {/* tvár */}
+        <g transform="translate(0,10)">
+          <circle cx="125" cy="198" r="4" fill="#211a19"/>
+          <circle ref={faceRef} cx="195" cy="198" r="4" fill="#211a19"/>
+          <path d="M140 210c8 10 32 10 40 0" stroke="#211a19" strokeWidth="4" strokeLinecap="round"/>
+        </g>
+      </svg>
     </div>
   );
 }
