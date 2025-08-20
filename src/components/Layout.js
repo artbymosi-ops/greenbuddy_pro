@@ -1,53 +1,29 @@
-import { useState } from 'react';
-import Link from 'next/link';
+// src/components/Layout.js
+import Link from "next/link";
 
-export default function Layout({ title = 'Greenbuddy', children }) {
-  const [open, setOpen] = useState(false);
-
+export default function Layout({ children }) {
   return (
-    <>
-      <nav className="nav">
-        <div className="nav-inner container">
-          <Link href="/" className="brand">
-            <span className="brand-badge" />
-            <span>Greenbuddy</span>
-          </Link>
-          <button className="menu-btn" onClick={() => setOpen(v => !v)} aria-label="Menu">
-            ☰
-          </button>
-          <div className={`menu ${open ? 'open' : ''}`}>
-            <ul onClick={()=>setOpen(false)}>
-              <li><Link href="/plant">Mein Greenbuddy</Link></li>
-              <li><Link href="/calendar">Kalender</Link></li>
-              <li><Link href="/diary">Tagebuch</Link></li>
-              <li><Link href="/forum">Forum</Link></li>
-              <li><Link href="/inbox">Inbox</Link></li>
-              <li><Link href="/account">Konto</Link></li>
-              <li><a href="https://tvoj-eshop.tld" target="_blank">Shop</a></li>
-              <li><a href="https://tvoj-eshop.tld/blog" target="_blank">Blog</a></li>
-              <li><Link href="/admin">Admin</Link></li>
-              <li><Link href="/auth/login">Abmelden</Link></li>
-            </ul>
-          </div>
+    <div className="wrap">
+      <header className="header">
+        <div className="brand">
+          <Link href="/">Greenbuddy</Link>
         </div>
-      </nav>
-      <main className="main container">
-        {title ? <div className="card" style={{marginBottom:12}}><h2 className="title">{title}</h2></div> : null}
-        {children}
-      </main>
-    </>
+
+        {/* Navigácia v hlavičke */}
+        <nav className="nav">
+          <Link href="/plants">Pflanzen</Link>
+          <Link href="/calendar">Kalender</Link>
+          <Link href="/diary">Tagebuch</Link>
+          <Link href="/forum">Forum</Link>
+          <Link href="/chat">AI-Chat</Link>
+        </nav>
+      </header>
+
+      <main className="main">{children}</main>
+
+      <footer className="footer">
+        © {new Date().getFullYear()} Greenbuddy
+      </footer>
+    </div>
   );
 }
-// v hlavičke Navigácie
-<nav className="nav">
-  {/* …ostatné linky… */}
-  <a href="/plants">Pflanzen</a>
-  <a href="/calendar">Kalender</a>
-</nav>
-<nav className="nav">
-  {/* ... */}
-  <a href="/plants">Pflanzen</a>
-  <a href="/calendar">Kalender</a>
-  <a href="/diary">Tagebuch</a>
-</nav>
-<a href="/ask">AI-Hilfe</a>
