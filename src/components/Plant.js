@@ -1,148 +1,102 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
+import styles from "@/styles/plant.module.css";
 
-export default function Plant({
-  level = 1,
-  xp = 0,
-  mood = "happy",          // "happy" | "neutral" | "sad" | "wilt" | "dead"
-  size = 1,                // 1.0 … 3.0 (škálovanie podľa levelu)
-  action = null            // "water" | "spray" | "fertilize" | "repot" | null
-}) {
-  const potRef = useRef(null);
+export default function Plant({ state, action, onAnimEnd, pulse=false }) {
+  const { hydration, nutrients, spray, level=1, xp=0, mood="happy", size=0 } = state || {};
+  const [runFx, setRunFx] = useState(false);
 
-  // vyber tvár podľa nálady
-  const face = useMemo(() => {
-    switch (mood) {
-      case "happy":
-        return { eyes: "• •", mouth: "‿", color: "#58c26a" };
-      case "neutral":
-        return { eyes: "• •", mouth: "━", color: "#82c48a" };
-      case "sad":
-        return { eyes: "• •", mouth: "︶", color: "#b4cfae" };
-      case "wilt":
-        return { eyes: "• •", mouth: "︵", color: "#c7d9c1" };
-      case "dead":
-        return { eyes: "x x", mouth: "—", color: "#9aa39a" };
-      default:
-        return { eyes: "• •", mouth: "━", color: "#82c48a" };
-    }
-  }, [mood]);
+  // urč počet lístkov podľa „veľkosti“
+  const leaves = useMemo(() => Math.min(2 + (size ?? 0), 5), [size]);
+  // mierne zväčšovanie rastliny pri leveloch
+  const scale = useMemo(() => 0.9 + Math.min(0.12 * (size ?? 0), 0.5), [size]);
 
-  // krátka „pulse“ animácia pri akcii
   useEffect(() => {
-    if (!action || !potRef.current) return;
-    const el = potRef.current;
-    el.classList.remove("pulse");
-    // reflow hack, aby sa animácia vždy spustila
-    void el.offsetWidth;
-    el.classList.add("pulse");
-  }, [action]);
+    if (!action) return;
+    setRunFx(true);
+    const t = setTimeout(() => {
+      setRunFx(false);
+      onAnimEnd?.();
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [action, onAnimEnd]);
+
+  const cls = [
+    styles.plant,
+    action === "water" && styles.actionWater,
+    action === "spray" && styles.actionSpray,
+    action === "feed"  && styles.actionFeed,
+    action === "repot" && styles.actionRepot,
+    pulse && styles.pulse
+  ].filter(Boolean).join(" ");
+
+  const happy = mood !== "sad";
 
   return (
-    <div className="plant-wrap">
-      <div
-        className={`plant ${mood}`}
-        style={{ transform: `scale(${size})` }}
-        ref={potRef}
-        aria-label={`Greenbuddy, Level ${level}, Stimmung ${mood}`}
-      >
-        {/* stonka */}
-        <div className="stem" />
-        {/* listy */}
-        <div className="leaf leaf-a" />
-        <div className="leaf leaf-b" />
-        <div className="leaf leaf-c" />
-        {/* kvetináč s tvárou */}
-        <div className="pot">
-          <div className="eyes">{face.eyes}</div>
-          <div className="mouth">{face.mouth}</div>
+    <div className={cls} style={{ ["--scale"]: scale }}>
+      {/* Level-up pulz */}
+      {pulse && <div className={styles.ring} />}
+
+      {/* FX overlaye */}
+      {runFx && action === "water" && (
+        <div className={styles.fxLayer}>
+          {Array.from({length:7}).map((_,i)=>(<span key={i} className={styles.drop} style={{ ["--i"]: i }} />))}
         </div>
+      )}
+      {runFx && action === "spray" && (
+        <div className={styles.fxLayer}><span className={styles.mist} /></div>
+      )}
+      {runFx && action === "feed" && (
+        <div className={styles.fxLayer}>
+          {Array.from({length:8}).map((_,i)=>(<span key={i} className={styles.sparkle} style={{ ["--i"]: i }} />))}
+        </div>
+      )}
+      {runFx && action === "repot" && (
+        <div className={styles.fxLayer}>
+          {Array.from({length:6}).map((_,i)=>(<span key={i} className={styles.dust} style={{ ["--i"]: i }} />))}
+        </div>
+      )}
 
-        {/* akčné efekty */}
-        {action === "water" && <div className="effect water" />}
-        {action === "spray" && <div className="effect spray" />}
-        {action === "fertilize" && <div className="effect sparkles" />}
-        {action === "repot" && <div className="effect dust" />}
+      {/* SVG rastlinka */}
+      <svg className={styles.svg} viewBox="0 0 360 360" aria-label="Greenbuddy plant">
+        {/* tieň */}
+        <ellipse cx="180" cy="300" rx="120" ry="22" className={styles.shadow} />
+        {/* kvetináč */}
+        <g className={styles.pot}>
+          <rect x="100" y="190" width="160" height="95" rx="26" />
+          <rect x="80"  y="175" width="200" height="30" rx="20" />
+          {/* tvárička */}
+          <circle cx="155" cy="235" r="5" fill="var(--ink)" />
+          <circle cx="205" cy="235" r="5" fill="var(--ink)" />
+          {happy ? (
+            <path d="M150 252 Q180 268 210 252" fill="none" stroke="var(--ink)" strokeWidth="4" strokeLinecap="round"/>
+          ) : (
+            <path d="M150 262 Q180 246 210 262" fill="none" stroke="var(--ink)" strokeWidth="4" strokeLinecap="round"/>
+          )}
+        </g>
+
+        {/* stonka */}
+        <rect x="176" y="150" width="8" height="48" rx="4" className={styles.stem}/>
+
+        {/* lístky – dynamický počet */}
+        <g className={styles.leaves}>
+          {Array.from({length:leaves}).map((_,i)=>(
+            <g key={i} className={`${styles.leaf} ${styles['leaf'+((i%3)+1)]}`}>
+              <ellipse cx={180 + (i-1)*28} cy={150 - (i%2)*12} rx="62" ry="44" />
+              <path d={`M ${180+(i-1)*28-36} ${150-(i%2)*12}
+                        C ${180+(i-1)*28-10} ${130-(i%2)*12},
+                          ${180+(i-1)*28+10} ${170-(i%2)*12},
+                          ${180+(i-1)*28+36} ${150-(i%2)*12}`}
+                    fill="none" stroke="rgba(0,0,0,.25)" strokeWidth="3" strokeLinecap="round"/>
+            </g>
+          ))}
+        </g>
+      </svg>
+
+      {/* panel so štatmi (voliteľné – nechávam na stránku) */}
+      <div className={styles.meta}>
+        <div className={styles.badge}>Stimmung: {happy ? "happy" : "sad"}</div>
+        <div className={styles.badge}>Level {level} • XP {xp}/{level*40}</div>
       </div>
-
-      <style jsx>{`
-        .plant-wrap {
-          display: grid;
-          place-items: center;
-          width: 100%;
-          padding: 12px 0 20px;
-        }
-        .plant {
-          position: relative;
-          width: 220px;
-          height: 210px;
-          filter: drop-shadow(0 16px 22px rgba(0,0,0,.18));
-          transition: transform .4s cubic-bezier(.2,.8,.2,1);
-        }
-        .plant.happy .leaf { filter: saturate(1.1); }
-        .plant.sad .leaf { filter: saturate(.85); }
-        .plant.wilt .leaf { transform: rotate(18deg) translateY(8px); filter: saturate(.75) brightness(.95); }
-        .plant.dead .leaf { filter: grayscale(.8) brightness(.9); }
-
-        .pulse { animation: pulse .5s ease-out; }
-        @keyframes pulse { 0%{ transform: scale(1) } 50%{ transform: scale(1.05) } 100%{ transform: scale(1) } }
-
-        .stem {
-          position: absolute; left: 106px; bottom: 88px;
-          width: 10px; height: 78px; background: #2f8b57; border-radius: 6px;
-        }
-
-        .leaf {
-          position: absolute; bottom: 105px;
-          width: 86px; height: 64px; background: ${face.color};
-          border-radius: 60px 60px 60px 60px / 44px 44px 44px 44px;
-          box-shadow: inset 0 0 0 4px rgba(0,0,0,.06);
-        }
-        .leaf-a { left: 58px; transform: rotate(-16deg); }
-        .leaf-b { left: 92px; transform: rotate(6deg); }
-        .leaf-c { left: 120px; transform: rotate(22deg); }
-
-        .pot {
-          position: absolute; bottom: 0; left: 22px; right: 22px;
-          height: 86px; background: #6b4a3b; border-radius: 18px 18px 22px 22px;
-        }
-        .eyes, .mouth {
-          position: absolute; left: 0; right: 0; text-align: center;
-          color: #111; font-weight: 700; font-size: 18px; letter-spacing: 6px;
-        }
-        .eyes { bottom: 48px; }
-        .mouth { bottom: 28px; letter-spacing: 0; }
-
-        .effect {
-          position: absolute; inset: 0; pointer-events: none;
-        }
-        .effect.water::after {
-          content: "";
-          position: absolute; left: 0; right: 0; top: -6px; margin: 0 auto;
-          width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent;
-          border-top: 18px solid #4aa3ff; opacity: 0; animation: drop .7s ease-out forwards;
-        }
-        @keyframes drop {
-          0% { transform: translateY(-30px); opacity: 0 }
-          50% { opacity: 1 }
-          100% { transform: translateY(65px); opacity: 0 }
-        }
-
-        .effect.spray { background: radial-gradient(circle at 50% 20%, rgba(170,220,255,.7), transparent 35%); animation: puff .6s ease-out both; }
-        @keyframes puff { from { opacity: .0; transform: scale(.9) } to { opacity: .9; transform: scale(1.05) } }
-
-        .effect.sparkles {
-          --c: radial-gradient(circle, #ffe38a 20%, transparent 22%);
-          background:
-            var(--c) 40% 30%/8px 8px no-repeat,
-            var(--c) 60% 40%/10px 10px no-repeat,
-            var(--c) 50% 20%/6px 6px no-repeat;
-          animation: twinkle .9s ease-in-out both;
-        }
-        @keyframes twinkle { 0% { opacity: 0 } 40% { opacity: 1 } 100% { opacity: 0 } }
-
-        .effect.dust { background: radial-gradient(300px 120px at 50% 80%, rgba(0,0,0,.12), transparent 60%); animation: dust .5s ease-out both; }
-        @keyframes dust { from { opacity: 0 } to { opacity: 1 } }
-      `}</style>
     </div>
   );
 }
