@@ -1,4 +1,8 @@
-  import { useEffect, useState } from 'react';
+import '@/styles/globals.css';
+
+export default function MyApp({ Component, pageProps }) {
+  return <Component {...pageProps} />;
+}  import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import Plant from '@/components/Plant';
 
