@@ -38,3 +38,9 @@ export default function Layout({ title = 'Greenbuddy', children }) {
     </>
   );
 }
+// v hlavičke Navigácie
+<nav className="nav">
+  {/* …ostatné linky… */}
+  <a href="/plants">Pflanzen</a>
+  <a href="/calendar">Kalender</a>
+</nav>
