@@ -109,3 +109,34 @@ button{font:inherit}
 .sparkles g:nth-child(3) path{ animation-delay:.16s }
 .sparkles g:nth-child(4) path{ animation-delay:.24s }
 @keyframes twinkle { 0%{opacity:0; transform:scale(.4)} 40%{opacity:1} 100%{opacity:0; transform:scale(1.6)} }
+/* 3D scene wrapper */
+.plant3d {
+  --tiltX: 0deg;
+  --tiltY: 0deg;
+  perspective: 800px;
+  padding: 8px;
+  border-radius: 20px;
+  position: relative;
+}
+.plant3d .scene {
+  transform-style: preserve-3d;
+  transition: filter .3s ease;
+}
+.plant3d.night .scene { filter: brightness(.85) saturate(.9); }
+
+.layer { transform: rotateX(var(--tiltX)) rotateY(var(--tiltY)); transform-style: preserve-3d; }
+.pot3d   { will-change: transform; }
+.stem3d  { filter: drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+.leaf3d  { filter: drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
+
+/* kvapky / trblietky / akcie */
+.drops circle { animation: drop .8s ease forwards; }
+.drops circle:nth-child(2){ animation-delay:.05s }
+.drops circle:nth-child(3){ animation-delay:.1s }
+@keyframes drop { 0%{opacity:0; transform:translateY(-10px)} 20%{opacity:1} 100%{opacity:0; transform:translateY(44px)} }
+
+.sparkles path { opacity:0; animation: twinkle .9s ease forwards; }
+.sparkles g:nth-child(2) path{ animation-delay:.1s }
+.sparkles g:nth-child(3) path{ animation-delay:.2s }
+.sparkles g:nth-child(4) path{ animation-delay:.3s }
+@keyframes twinkle { 0%{opacity:0; transform:scale(.4)} 50%{opacity:1} 100%{opacity:0; transform:scale(1.7)} }
