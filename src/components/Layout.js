@@ -50,3 +50,4 @@ export default function Layout({ title = 'Greenbuddy', children }) {
   <a href="/calendar">Kalender</a>
   <a href="/diary">Tagebuch</a>
 </nav>
+<a href="/ask">AI-Hilfe</a>
