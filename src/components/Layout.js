@@ -44,3 +44,9 @@ export default function Layout({ title = 'Greenbuddy', children }) {
   <a href="/plants">Pflanzen</a>
   <a href="/calendar">Kalender</a>
 </nav>
+<nav className="nav">
+  {/* ... */}
+  <a href="/plants">Pflanzen</a>
+  <a href="/calendar">Kalender</a>
+  <a href="/diary">Tagebuch</a>
+</nav>
