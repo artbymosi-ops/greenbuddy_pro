@@ -260,7 +260,13 @@ export default function DiaryPage() {
             <li key={entry.id ?? entry._localId} style={{alignItems:"flex-start"}}>
               <div>
                 <div className="ev-title">
-                  <span className="ev-tag">{entry.plant_name || plantLabel(entry.plant_id)}</span>
+                  {entry.plant_id ? (
+  <a className="ev-tag" href={`/plants/${entry.plant_id}`} style={{textDecoration:"none"}}>
+    {entry.plant_name || plantLabel(entry.plant_id)}
+  </a>
+) : (
+  <span className="ev-tag">{entry.plant_name || plantLabel(entry.plant_id)}</span>
+)}
                   {new Date(entry.date).toLocaleDateString("de-DE")}
                 </div>
                 <div className="subtitle" style={{marginTop:4}}>
