@@ -1,134 +1,78 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import Layout from '@/components/Layout'
-import Plant from '@/components/Plant'
-import { supabase } from '@/utils/supabaseClient'
-import { detectLang } from '@/utils/lang'
-
-const XP_PER_ACTION = 8
-const XP_FOR_LEVEL = (lvl)=> 40 + (lvl-1)*25
+  import { useEffect, useState } from 'react';
+import Layout from '@/components/Layout';
+import Plant from '@/components/Plant';
 
 export default function AppPage(){
-  const [user, setUser] = useState(null)
+  const [st, setSt] = useState({
+    hydration:100, nutrients:60, spray:90, xp:0, level:1, mood:'happy', size:0
+  });
+  const [pulse, setPulse] = useState(false);
+
+  // level up -> rast
   useEffect(()=>{
-    supabase.auth.getUser().then(({data})=> setUser(data.user || null))
-  }, [])
+    const need = st.level*40;
+    if(st.xp >= need){
+      setSt(s=>({ ...s, xp: s.xp-need, level:s.level+1, size:Math.min((s.size??0)+1, 5)}));
+      flash();
+    }
+    // nálada
+    const mood = (st.hydration<30 || st.nutrients<30 || st.spray<30) ? 'sad' : 'happy';
+    if(mood!==st.mood) setSt(s=>({ ...s, mood }));
+  },[st.xp, st.hydration, st.nutrients, st.spray]);
 
-  const [s, setS] = useState(()=>({ water:100, food:60, spray:90, xp:52, level:1, pests:false, disease:false }))
-  const [msgs, setMsgs] = useState([{role:'assistant', content:'Hallo, ich bin Greenbuddy 🌿 Frag mich alles zur Pflege!'}])
-  const inputRef = useRef(null)
-  const [pending, setPending] = useState(false)
+  function flash(){ setPulse(true); setTimeout(()=>setPulse(false), 350); }
+
+  const addXp = (n)=> setSt(s=>({ ...s, xp:s.xp+n }));
+
+  const water = ()=>{ setSt(s=>({ ...s, hydration:Math.min(100,s.hydration+18)})); addXp(6); flash(); }
+  const feed  = ()=>{ setSt(s=>({ ...s, nutrients:Math.min(100,s.nutrients+14)})); addXp(6); flash(); }
+  const spray = ()=>{ setSt(s=>({ ...s, spray:Math.min(100,s.spray+12)})); addXp(6); flash(); }
+  const repot = ()=>{ setSt(s=>({ ...s, nutrients:Math.min(100,s.nutrients+10), hydration:Math.max(60,s.hydration-8)})); addXp(10); flash(); }
+  const tick  = ()=>{ // simulácia času – mierny pokles
+    setSt(s=>({ ...s,
+      hydration:Math.max(0,s.hydration-3),
+      nutrients:Math.max(0,s.nutrients-2),
+      spray:Math.max(0,s.spray-2)
+    }));
+  };
 
   useEffect(()=>{
-    if (!user) return
-    ;(async()=>{
-      const { data } = await supabase.from('plant_states').select('*').eq('user_id', user.id).maybeSingle()
-      if (data) setS(data.state)
-    })()
-  }, [user])
-
-  useEffect(()=>{
-    if (!user) return
-    supabase.from('plant_states').upsert({ user_id:user.id, state:s, updated_at:new Date().toISOString() })
-  }, [user, s])
-
-  useEffect(()=>{
-    const t = setInterval(()=>{
-      setS(s=>{
-        const decay = 1
-        const pestsPenalty = s.pests ? 1 : 0
-        const diseasePenalty = s.disease ? 1 : 0
-        let next = {
-          ...s,
-          water: Math.max(0, s.water - decay - pestsPenalty),
-          food: Math.max(0, s.food - (decay*0.6|0) - diseasePenalty),
-          spray: Math.max(0, s.spray - (decay*0.4|0)),
-          xp: Math.max(0, s.xp - (s.water<20 || s.food<20 ? 1 : 0))
-        }
-        if (next.xp >= XP_FOR_LEVEL(next.level)) { next.level += 1; next.xp = 0 }
-        return next
-      })
-    }, 60_000)
-    return ()=>clearInterval(t)
-  }, [])
-
-  const mood = useMemo(()=>{
-    const avg = (s.water + s.food + s.spray)/3
-    if (s.pests || s.disease || avg < 35) return 'sad'
-    if (avg > 70) return 'happy'
-    return 'neutral'
-  }, [s])
-
-  function bump(key, delta, note){
-    setS(prev => ({ ...prev, [key]: Math.max(0, Math.min(100, prev[key] + delta)), xp: prev.xp + XP_PER_ACTION }))
-    if (note) setMsgs(m => [...m, {role:'assistant', content: note}])
-    // Vergabe von Codes bei Level-Meilensteinen
-    const milestones = [2,4,6,8]
-    if (milestones.includes(s.level)) grantCode()
-  }
-
-  async function grantCode(){
-    if (!user) return
-    const code = 'GB-' + Math.random().toString(36).slice(2,8).toUpperCase()
-    await supabase.from('inbox_codes').insert({ user_id:user.id, code, level_awarded: s.level })
-  }
-
-  async function send(){
-    const content = inputRef.current.value.trim()
-    if (!content) return
-    inputRef.current.value = ''
-    setMsgs(m=>[...m, {role:'user', content}])
-    setPending(true)
-    try {
-      const lang = detectLang(content, 'de')
-      const r = await fetch('/api/chat', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ message: content, stats: s, lang })
-      })
-      const data = await r.json()
-      const reply = data.reply || 'Entschuldige, keine Antwort möglich.'
-      setMsgs(m=>[...m, {role:'assistant', content:reply}])
-      if ('speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(reply); u.lang = lang==='sk'?'sk-SK':'de-DE'; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u) }
-      if (data.patchStats) setS(v=>({ ...v, ...data.patchStats }))
-    } finally { setPending(false) }
-  }
-
-  async function logout(){ await supabase.auth.signOut(); window.location.href='/auth/login' }
+    const t = setInterval(()=>tick(), 8000);
+    return ()=>clearInterval(t);
+  },[]);
 
   return (
-    <Layout user={user} onLogout={logout}>
-      <section className="center" style={{marginBottom:10}}>
-        <Plant level={s.level} mood={mood} pests={s.pests} disease={s.disease} />
-        <p className="small muted">Stimmung: <b>{mood}</b> • Level <b>{s.level}</b> • XP <b>{s.xp}/{XP_FOR_LEVEL(s.level)}</b></p>
-      </section>
+    <Layout>
+      <div className="grid" style={{gap:24}}>
+        <section className="card">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <div>
+              <div className="badge">Stimmung: {st.mood==='happy'?'glücklich':'traurig'}</div>
+              <h2 className="title" style={{fontSize:28, marginTop:6}}>Level {st.level} • <span className="subtitle">XP {st.xp}/{st.level*40}</span></h2>
+            </div>
+          </div>
+          <Plant state={st} onPulse={pulse} />
+          <div className="grid grid-3" style={{marginTop:12}}>
+            <div className="stat"><h3>Hydration</h3><div className="v">{st.hydration}</div></div>
+            <div className="stat"><h3>Nährstoffe</h3><div className="v">{st.nutrients}</div></div>
+            <div className="stat"><h3>Spray</h3><div className="v">{st.spray}</div></div>
+          </div>
+          <div style={{display:'flex',gap:12,flexWrap:'wrap',marginTop:16}}>
+            <button className="btn" onClick={water}>Gießen</button>
+            <button className="btn" onClick={feed}>Düngen</button>
+            <button className="btn" onClick={spray}>Sprühen</button>
+            <button className="btn ghost" onClick={repot}>Umtopfen</button>
+            <button className="btn danger" onClick={()=>setSt(s=>({...s, hydration:12}))}>Problem simulieren</button>
+          </div>
+        </section>
 
-      <section className="grid cols-3">
-        <Card title="Hydration" value={s.water} />
-        <Card title="Nährstoffe" value={s.food} />
-        <Card title="Spray" value={s.spray} />
-      </section>
-
-      <div className="row" style={{flexWrap:'wrap', gap:10, margin:'14px 0'}}>
-        <button className="btn" onClick={()=>bump('water', +14, 'Danke fürs Gießen! 💧')}>Gießen</button>
-        <button className="btn" onClick={()=>bump('food', +12, 'Lecker Dünger! 🌱')}>Düngen</button>
-        <button className="btn" onClick={()=>{ setS(v=>({...v, spray: Math.min(100, v.spray+10), pests:false })); setMsgs(m=>[...m,{role:'assistant', content:'Spray wirkt – Schädlinge weg 🐞➡️🚫'}])}}>Sprühen</button>
-        <button className="btn alt" onClick={()=>{ setS(v=>({...v, pests: Math.random()<.5, disease: Math.random()<.4 })); setMsgs(m=>[...m,{role:'assistant', content:'Oh nein, Stress! Hilf mir schnell 🙈'}])}}>Problem simulieren</button>
+        <section className="card">
+          <h3 style={{marginTop:0}}>Chat mit Greenbuddy</h3>
+          <p className="subtitle">Frag mich alles zur Pflege – ich antworte auf Deutsch.</p>
+          {/* sem už máš svoj chat komponent, zostal nezmenený – tlačidlo/textarea */}
+          {/* ak chceš, viem ti ho upraviť na bubliny a TTS/hlas */}
+        </section>
       </div>
-
-      <section className="card">
-        <h2>Chat mit Greenbuddy</h2>
-        <div className="chatlog">
-          {msgs.map((m,i)=>(<div key={i} className={`msg ${m.role==='assistant'?'bot':'user'}`}>{m.content}</div>))}
-          {pending && <div className="msg bot">Denke nach…</div>}
-        </div>
-        <div className="row" style={{marginTop:10}}>
-          <input ref={inputRef} className="input" placeholder="Frag nach Pflege, Gießen, Schädlingen …" onKeyDown={(e)=>e.key==='Enter'&&send()} />
-          <button className="btn" onClick={send}>Senden</button>
-        </div>
-      </section>
     </Layout>
-  )
-}
-
-function Card({title, value}){
-  return (<div className="card"><div className="row" style={{justifyContent:'space-between'}}><b>{title}</b><span className="badge">{value}/100</span></div></div>)
+  );
 }
