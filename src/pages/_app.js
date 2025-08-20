@@ -25,3 +25,9 @@ const spray = ()=>{ /* ... */ setLastAction('spray'); };
 const repot = ()=>{ /* ... */ setLastAction('repot'); };
 // render:
 <Plant3D state={st} lastAction={lastAction}/>
+import Plant3D from "@/components/Plant3D";
+export default function PlantPage(){
+  // tu máš svoj st (hydration, nutrients, spray, xp, level, mood) a setLastAction v handleroch
+  // ...
+  return <Plant3D state={st} lastAction={lastAction} />;
+}
