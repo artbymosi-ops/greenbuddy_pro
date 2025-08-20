@@ -15,3 +15,13 @@ const repot = ()=>{ setSt(s=>({ ...s, nutrients:Math.min(100,s.nutrients+10), hy
 
 // v JSX:
 <Plant state={st} pulse={pulse} lastAction={lastAction} />
+import Plant3D from "@/components/Plant3D";
+// ...
+const [lastAction, setLastAction] = useState(null);
+// pri akciách:
+const water = ()=>{ /* ...update state... */ setLastAction('water'); };
+const feed  = ()=>{ /* ... */ setLastAction('feed');  };
+const spray = ()=>{ /* ... */ setLastAction('spray'); };
+const repot = ()=>{ /* ... */ setLastAction('repot'); };
+// render:
+<Plant3D state={st} lastAction={lastAction}/>
