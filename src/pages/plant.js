@@ -1,4 +1,4 @@
-import Plant from "../src/components/Plant";
+import Plant from "@/components/Plant";
 
 export default function PlantPage() {
   return (
