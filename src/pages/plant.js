@@ -2,7 +2,15 @@ import PlantPremiumV2 from "@/components/Plant";
 export default function PlantPage(){ return <PlantPremiumV2/>; }
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
+// hore:
+const [lastAction, setLastAction] = useState(null);
 
+// ...
+const water = ()=>{ setSt(s=>({ ...s, hydration:Math.min(100,s.hydration+18)})); addXp(6); setLastAction('water'); };
+const feed  = ()=>{ setSt(s=>({ ...s, nutrients:Math.min(100,s.nutrients+14)})); addXp(6); setLastAction('feed'); };
+const spray = ()=>{ setSt(s=>({ ...s, spray:Math.min(100,s.spray+12)})); addXp(6); setLastAction('spray'); };
+const repot = ()=>{ setSt(s=>({ ...s, nutrients:Math.min(100,s.nutrients+10), hydration:Math.max(60,s.hydration-8)})); addXp(10); setLastAction('repot'); };
+  
 // lazy load supabase klienta (aby build nepadal, keď env nie je nastavené)
 let supabase = null;
 if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -129,3 +137,23 @@ export default function PlantsPage() {
     </Layout>
   );
   }
+
+// v JSX:
+<Plant state={st} pulse={pulse} lastAction={lastAction} />
+import Plant3D from "@/components/Plant3D";
+// ...
+const [lastAction, setLastAction] = useState(null);
+// pri akciách:
+const water = ()=>{ /* ...update state... */ setLastAction('water'); };
+const feed  = ()=>{ /* ... */ setLastAction('feed');  };
+const spray = ()=>{ /* ... */ setLastAction('spray'); };
+const repot = ()=>{ /* ... */ setLastAction('repot'); };
+// render:
+<Plant3D state={st} lastAction={lastAction}/>
+import Plant3D from "@/components/Plant3D";
+export default function PlantPage(){
+  // tu máš svoj st (hydration, nutrients, spray, xp, level, mood) a setLastAction v handleroch
+  // ...
+  return <Plant3D state={st} lastAction={lastAction} />;
+                   }
+                   
