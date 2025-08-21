@@ -1,12 +1,9 @@
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-  }, [open]);
+  useEffect(()=>{ document.body.style.overflow = open ? "hidden" : ""; }, [open]);
 
   return (
     <header className="site-header">
@@ -17,13 +14,16 @@ export default function Header() {
         </Link>
 
         <div className="h-right">
-          <button className={`hamb ${open ? "is-open" : ""}`} onClick={()=>setOpen(v=>!v)} aria-label="Menü">
+          <button
+            className={`hamb ${open ? "is-open" : ""}`}
+            aria-label="Menü"
+            onClick={() => setOpen(v=>!v)}
+          >
             <span/><span/><span/>
           </button>
         </div>
       </div>
 
-      {/* Drawer */}
       <nav className={`drawer ${open ? "open" : ""}`} onClick={()=>setOpen(false)}>
         <div className="drawer-panel" onClick={(e)=>e.stopPropagation()}>
           <div className="drawer-head">
@@ -43,4 +43,4 @@ export default function Header() {
       </nav>
     </header>
   );
-}
+                                                             }
