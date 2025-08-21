@@ -1,6 +1,19 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
+// + pridaj tento import
+import LangSwitch from "@/components/LangSwitch";
 
+// ...vo vnútri returnu, vpravo do .h-right pred hamburger:
+<div className="h-right">
+  <LangSwitch />
+  <button
+    className={`hamb ${open ? "is-open" : ""}`}
+    aria-label="Menü"
+    onClick={() => setOpen(v=>!v)}
+  >
+    <span/><span/><span/>
+  </button>
+</div>
 export default function Header() {
   const [open, setOpen] = useState(false);
   useEffect(()=>{ document.body.style.overflow = open ? "hidden" : ""; }, [open]);
