@@ -1,121 +1,118 @@
+// src/pages/minigames/index.js
 import { useEffect, useRef, useState } from "react";
 import Layout from "@/components/Layout";
-import { awardCoupon } from "@/lib/coupons";
 
-
-export default function MiniGames(){
-  const [running,setRunning]=useState(false);
-  const [time,setTime]=useState(30);
-  const [score,setScore]=useState(0);
-  const boxRef = useRef(null);
-  const [leaves,setLeaves]=useState([]);
-
-  useEffect(()=>{
-    if(!running) return;
-    setScore(0); setLeaves([]);
-    const t1 = setInterval(()=>setTime(t=>t-1),1000);
-    const t2 = setInterval(()=>{
-      setLeaves(prev=>[...prev, { id:crypto.randomUUID(), x: Math.random()*90+5, y: -10 }]);
-    }, 600);
-
-    const fall = setInterval(()=>{
-      setLeaves(prev=>prev.map(l=>({...l,y:l.y+4})).filter(l=>l.y<110));
-    }, 120);
-
-    return ()=>{
-      clearInterval(t1); clearInterval(t2); clearInterval(fall);
+/* Jednoduchý generátor kupónov – ukladá do localStorage */
+function awardCoupon({ tier, percent, min }) {
+  const bag = JSON.parse(localStorage.getItem("gb_rewards") || "{}");
+  const key = tier || `OFF${percent}_${min}`;
+  if (!bag[key]) {
+    bag[key] = {
+      code: `${percent}OFF-${min}-${Math.random()
+        .toString(36)
+        .slice(2, 8)
+        .toUpperCase()}`,
+      percent,
+      min,
+      ts: Date.now(),
     };
-  },[running]);
-
-  useEffect(()=>{ if(time<=0 && running){ setRunning(false); } },[time,running]);
-
-  function clickLeaf(id){
-    setLeaves(prev=>prev.filter(l=>l.id!==id));
-    setScore(s=>s+1);
+    localStorage.setItem("gb_rewards", JSON.stringify(bag));
   }
+  return bag[key];
+}
 
-  function start(){ setTime(30); setScore(0); setRunning(true); }
-
-  const wonCoupon = !running && score>=20;
-  const xp = !running ? Math.min(30, score) : 0;
-
-  useEffect(()=>{
-    if(!running && (wonCoupon || xp>0)){
-      const bag = JSON.parse(localStorage.getItem("gb_rewards")||"{}");
-      if(wonCoupon && !bag.coupon10){
-        bag.coupon10 = `GB10-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
-      }
-      bag.xp = (bag.xp||0) + xp;
-      localStorage.setItem("gb_rewards", JSON.stringify(bag));
-    }
-  },[running]);
-
-  return (
-    <Layout title="Minihry">
-      <div className="card">
-        <h2 style={{marginTop:0}}>🍃 Padajúce listy</h2>
-        <p className="subtitle">Klikaj na listy. 30 sekúnd. 20+ zásahov = <b>kupón -10% nad 25€</b>, inak XP = počet zásahov.</p>
-
-        <div ref={boxRef} style={{position:"relative",height:360,overflow:"hidden",borderRadius:12,background:"linear-gradient(#eaf7ed,#f4fbf5)"}}>
-          {leaves.map(l=>(
-            <button key={l.id} onClick={()=>clickLeaf(l)} style={{
-              position:"absolute", left:`${l.x}%`, top:`${l.y}%`, transform:"translate(-50%,-50%)",
-              background:"transparent", border:"none", cursor:"pointer"
-            }} aria-label="leaf">
-              <span style={{fontSize:28}}>🍂</span>
-            </button>
-          ))}
-          {!running && <div style={{position:"absolute",inset:0,display:"grid",placeItems:"center"}}>
-            <button className="btn" onClick={start}>Štart</button>
-          </div>}
-        </div>
-
-        <div style={{display:"flex",gap:12,marginTop:12}}>
-          <div className="badge">⏱️ {time}s</div>
-          <div className="badge">⭐ {score}</div>
-        </div>
-
-        {!running && (
-          <div className="card" style={{marginTop:12}}>
-            {wonCoupon
-              ? <p>Gratulujem! Tvoj kupón: <b>{JSON.parse(localStorage.getItem("gb_rewards")).coupon10}</b></p>
-              : <p>Získal/a si XP: <b>{xp}</b> (pripočítame k rastline).</p>}
-            <p className="subtitle">Na najvyššom leveli dáme aj <b>-20% nad 70€</b>.</p>
-          </div>
-        )}
-      </div>
-    </Layout>
-  );
-                                 }
-
-export default function MiniGamesPage(){
+export default function MiniGamesPage() {
   const [tab, setTab] = useState("leaves"); // leaves | ladybug
   return (
     <Layout title="Mini-hry">
       <div className="card">
         <div className="mg-toolbar">
           <div>
-            <h2 className="title" style={{margin:0}}>Mini-hry</h2>
-            <p className="subtitle" style={{margin:"4px 0 0"}}>
+            <h2 className="title" style={{ margin: 0 }}>
+              Mini-hry
+            </h2>
+            <p className="subtitle" style={{ margin: "4px 0 0" }}>
               Získaj XP pre rastlinku – a pri skvelom výkone aj zľavový kupón 🎁
             </p>
           </div>
-          <div style={{display:"flex", gap:8}}>
-            <button className={"btn"+(tab==="leaves"?"":" ghost")} onClick={()=>setTab("leaves")}>🍃 Falling Leaves</button>
-            <button className={"btn"+(tab==="ladybug"?"":" ghost")} onClick={()=>setTab("ladybug")}>🐞 Ladybug Chase</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className={"btn" + (tab === "leaves" ? "" : " ghost")}
+              onClick={() => setTab("leaves")}
+            >
+              🍃 Falling Leaves
+            </button>
+            <button
+              className={"btn" + (tab === "ladybug" ? "" : " ghost")}
+              onClick={() => setTab("ladybug")}
+            >
+              🐞 Ladybug Chase
+            </button>
           </div>
         </div>
       </div>
 
-      {tab==="leaves" ? <GameLeaves/> : <GameLadybug/>}
+      {tab === "leaves" ? <GameLeaves /> : <GameLadybug />}
+
+      {/* lokálne štýly pre minihry */}
+      <style jsx>{`
+        .mg-toolbar {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          justify-content: space-between;
+        }
+        .mg-wrap {
+          margin-top: 12px;
+        }
+        .board {
+          position: relative;
+          height: 420px;
+          overflow: hidden;
+          border-radius: 14px;
+          background: linear-gradient(#eaf7ed, #f4fbf5);
+        }
+        .leaf,
+        .ladybug {
+          position: absolute;
+          transform: translate(-50%, -50%);
+          cursor: pointer;
+          user-select: none;
+          font-size: 28px;
+        }
+        .leaf.pop {
+          animation: pop 0.18s ease forwards;
+        }
+        @keyframes pop {
+          to {
+            transform: translate(-50%, -50%) scale(1.4);
+            opacity: 0;
+          }
+        }
+        .modal {
+          position: fixed;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          background: rgba(0, 0, 0, 0.35);
+        }
+        .modal .box {
+          background: #fff;
+          padding: 16px;
+          border-radius: 14px;
+          max-width: 420px;
+          text-align: center;
+          box-shadow: var(--shadow);
+        }
+      `}</style>
     </Layout>
   );
 }
 
 /* -------------------- GAME 1: FALLING LEAVES -------------------- */
-function GameLeaves(){
-  const DURATION = 30;            // sekúnd
-  const TARGET = 25;              // koľko listov „popnúť“ na kupón
+function GameLeaves() {
+  const DURATION = 30; // sekúnd
+  const TARGET = 25; // listov na kupón
   const [time, setTime] = useState(DURATION);
   const [score, setScore] = useState(0);
   const [running, setRunning] = useState(false);
@@ -123,33 +120,45 @@ function GameLeaves(){
   const idc = useRef(1);
   const [coupon, setCoupon] = useState(null);
 
-  useEffect(()=>{
-    if(!running) return;
-    const t = setInterval(()=>setTime(s=>Math.max(0, s-1)), 1000);
+  useEffect(() => {
+    if (!running) return;
+    const t = setInterval(() => setTime((s) => Math.max(0, s - 1)), 1000);
     const s = setInterval(spawn, 450);
-    return ()=>{ clearInterval(t); clearInterval(s); };
-  },[running]);
+    return () => {
+      clearInterval(t);
+      clearInterval(s);
+    };
+  }, [running]);
 
-  useEffect(()=>{
-    if(time===0 && running){
+  useEffect(() => {
+    if (time === 0 && running) {
       setRunning(false);
-      if(score>=TARGET){
-        const c = awardCoupon({ tier:"10OFF25", percent:10, min:25 });
+      if (score >= TARGET) {
+        const c = awardCoupon({ tier: "10OFF25", percent: 10, min: 25 });
         setCoupon(c);
       }
+      // XP si vieš odčítať z `score` a prirátať k rastline (ak chceš, doplním)
     }
-  },[time, running, score]);
+  }, [time, running, score]);
 
-  function spawn(){
-    setLeaves(l => [...l, { id:idc.current++, x: Math.random()*92+4, start: Date.now() }]);
-    // udržuj rozumný počet
-    setLeaves(l => l.slice(-60));
+  function spawn() {
+    setLeaves((l) => [
+      ...l,
+      { id: idc.current++, x: Math.random() * 92 + 4, start: Date.now() },
+    ]);
+    setLeaves((l) => l.slice(-60)); // udržuj rozumný počet
   }
-  function hit(id){
-    setLeaves(l=>l.filter(a=>a.id!==id));
-    setScore(s=>s+1);
+  function hit(id) {
+    setLeaves((l) => l.filter((a) => a.id !== id));
+    setScore((s) => s + 1);
   }
-  function start(){ setScore(0); setTime(DURATION); setCoupon(null); setRunning(true); setLeaves([]); }
+  function start() {
+    setScore(0);
+    setTime(DURATION);
+    setCoupon(null);
+    setRunning(true);
+    setLeaves([]);
+  }
 
   return (
     <div className="card mg-wrap">
@@ -157,13 +166,16 @@ function GameLeaves(){
         <div className="badge">🎯 Cieľ: {TARGET}</div>
         <div className="badge timer">⏱ {time}s</div>
         <div className="badge">⭐ Skóre: {score}</div>
-        <div style={{marginLeft:"auto"}}>
-          <button className="btn" onClick={start} disabled={running}>{running?"Beží…":"Štart"}</button>
+        <div style={{ marginLeft: "auto" }}>
+          <button className="btn" onClick={start} disabled={running}>
+            {running ? "Beží…" : "Štart"}
+          </button>
         </div>
       </div>
+
       <div className="board">
-        {leaves.map(l=>(
-          <LeafFaller key={l.id} x={l.x} onHit={()=>hit(l.id)} />
+        {leaves.map((l) => (
+          <LeafFaller key={l.id} x={l.x} onHit={() => hit(l.id)} />
         ))}
       </div>
 
@@ -171,69 +183,87 @@ function GameLeaves(){
         <div className="modal">
           <div className="box">
             <h3>🎉 Skvelý výkon!</h3>
-            <p>Získavaš kupón <b>{coupon.code}</b> – <b>{coupon.percent}%</b> zľava pri objednávke nad <b>{coupon.min}€</b>.</p>
-            <button className="btn" onClick={()=>setCoupon(null)}>OK</button>
+            <p>
+              Získavaš kupón <b>{coupon.code}</b> – <b>{coupon.percent}%</b> zľava pri
+              objednávke nad <b>{coupon.min}€</b>.
+            </p>
+            <button className="btn" onClick={() => setCoupon(null)}>
+              OK
+            </button>
           </div>
         </div>
       )}
     </div>
   );
 }
-function LeafFaller({ x, onHit }){
+
+function LeafFaller({ x, onHit }) {
   const [y, setY] = useState(-20);
   const [pop, setPop] = useState(false);
-  useEffect(()=>{
-    const t = setInterval(()=>setY(v=>v+2.2), 30);
-    return ()=>clearInterval(t);
-  },[]);
-  if(y>420) return null;
+  useEffect(() => {
+    const t = setInterval(() => setY((v) => v + 2.2), 30);
+    return () => clearInterval(t);
+  }, []);
+  if (y > 420) return null;
   return (
     <div
-      className={"leaf"+(pop?" pop":"")}
-      style={{ left:`${x}%`, top:y }}
-      onClick={()=>{ setPop(true); setTimeout(onHit, 180); }}
+      className={"leaf" + (pop ? " pop" : "")}
+      style={{ left: `${x}%`, top: y }}
+      onClick={() => {
+        setPop(true);
+        setTimeout(onHit, 180);
+      }}
       title="Klikni!"
     >
-      🍂
+      🪴
     </div>
   );
 }
 
 /* -------------------- GAME 2: LADYBUG CHASE -------------------- */
-function GameLadybug(){
+function GameLadybug() {
   const DURATION = 25;
   const TARGET = 12;
   const [time, setTime] = useState(DURATION);
   const [score, setScore] = useState(0);
   const [running, setRunning] = useState(false);
-  const [bug, setBug] = useState({ x:50, y:50 });
+  const [bug, setBug] = useState({ x: 50, y: 50 });
   const [coupon, setCoupon] = useState(null);
 
-  useEffect(()=>{
-    if(!running) return;
-    const t = setInterval(()=>setTime(s=>Math.max(0, s-1)), 1000);
-    const m = setInterval(()=>move(), 750);
-    return ()=>{ clearInterval(t); clearInterval(m); };
-  },[running]);
+  useEffect(() => {
+    if (!running) return;
+    const t = setInterval(() => setTime((s) => Math.max(0, s - 1)), 1000);
+    const m = setInterval(() => move(), 750);
+    return () => {
+      clearInterval(t);
+      clearInterval(m);
+    };
+  }, [running]);
 
-  useEffect(()=>{
-    if(time===0 && running){
+  useEffect(() => {
+    if (time === 0 && running) {
       setRunning(false);
-      if(score>=TARGET){
-        const c = awardCoupon({ tier:"10OFF25", percent:10, min:25 });
+      if (score >= TARGET) {
+        const c = awardCoupon({ tier: "10OFF25", percent: 10, min: 25 });
         setCoupon(c);
       }
     }
-  },[time, running, score]);
+  }, [time, running, score]);
 
-  function move(){
-    setBug({ x: Math.random()*92+4, y: Math.random()*82+8 });
+  function move() {
+    setBug({ x: Math.random() * 92 + 4, y: Math.random() * 82 + 8 });
   }
-  function hit(){
-    setScore(s=>s+1);
+  function hit() {
+    setScore((s) => s + 1);
     move();
   }
-  function start(){ setScore(0); setTime(DURATION); setCoupon(null); setRunning(true); move(); }
+  function start() {
+    setScore(0);
+    setTime(DURATION);
+    setCoupon(null);
+    setRunning(true);
+    move();
+  }
 
   return (
     <div className="card mg-wrap">
@@ -241,15 +271,18 @@ function GameLadybug(){
         <div className="badge">🎯 Cieľ: {TARGET}</div>
         <div className="badge timer">⏱ {time}s</div>
         <div className="badge">⭐ Skóre: {score}</div>
-        <div style={{marginLeft:"auto"}}>
-          <button className="btn" onClick={start} disabled={running}>{running?"Beží…":"Štart"}</button>
+        <div style={{ marginLeft: "auto" }}>
+          <button className="btn" onClick={start} disabled={running}>
+            {running ? "Beží…" : "Štart"}
+          </button>
         </div>
       </div>
+
       <div className="board">
         {running && (
           <div
             className="ladybug"
-            style={{ left:`${bug.x}%`, top:`${bug.y}%` }}
+            style={{ left: `${bug.x}%`, top: `${bug.y}%` }}
             onClick={hit}
             title="Klikni!"
           >
@@ -262,8 +295,13 @@ function GameLadybug(){
         <div className="modal">
           <div className="box">
             <h3>🎉 Bravo!</h3>
-            <p>Vyhrávaš kupón <b>{coupon.code}</b> – <b>{coupon.percent}%</b> zľava pri objednávke nad <b>{coupon.min}€</b>.</p>
-            <button className="btn" onClick={()=>setCoupon(null)}>OK</button>
+            <p>
+              Vyhrávaš kupón <b>{coupon.code}</b> – <b>{coupon.percent}%</b> zľava pri
+              objednávke nad <b>{coupon.min}€</b>.
+            </p>
+            <button className="btn" onClick={() => setCoupon(null)}>
+              OK
+            </button>
           </div>
         </div>
       )}
