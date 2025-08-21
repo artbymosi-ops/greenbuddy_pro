@@ -2,7 +2,33 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 // + pridaj tento import
 import LangSwitch from "@/components/LangSwitch";
+import { useState } from "react";
+import LangSwitch from "./LangSwitch";
 
+export default function Header() {
+  const [open, setOpen] = useState(false); // tu pridáš stav
+
+  return (
+    <header>
+      <LangSwitch />
+      <button
+        className={`hamb ${open ? "active" : ""}`}
+        aria-label="Menü"
+        onClick={() => setOpen(!open)}
+      >
+        ☰
+      </button>
+
+      {open && (
+        <nav className="mobile-nav">
+          <a href="/">Domov</a>
+          <a href="/meine-pflanze">Moja rastlina</a>
+          <a href="/forum">Fórum</a>
+        </nav>
+      )}
+    </header>
+  );
+}
 // ...vo vnútri returnu, vpravo do .h-right pred hamburger:
 <div className="h-right">
   <LangSwitch />
