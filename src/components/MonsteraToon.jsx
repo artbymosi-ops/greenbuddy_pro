@@ -1,247 +1,223 @@
-import React, { useMemo } from "react";
+// src/components/MonsteraToon.jsx
+import React from "react";
 
 /**
- * MonsteraToon – jedna drop-in SVG rastlinka
- * Props:
- *  - level: 1..10   (viac listov a fenestrácií)
- *  - mood:  "happy" | "neutral" | "sad" | "talk"
- *  - wind:  0..1    (amplitúda kolísania)
- *  - face:  "leaf" | "pot"   (kde je tvár)
- *  - size:  pixel šírka (výška sa prispôsobí; default 360)
+ * MonsteraToon – hravá 2D Monstera
+ * props:
+ *  - size: px (default 360)
+ *  - level: 1..10+ (pribúdajú listy a fenestrácie)
+ *  - mood: "happy" | "neutral" | "sad" | "talk" (ovplyvní výraz)
+ *  - wind: 0..1 (amplitúda hojdania listov)
+ *  - face: "leaf" | "pot"  (default "leaf" – tvár na liste)
  */
 export default function MonsteraToon({
+  size = 360,
   level = 1,
   mood = "happy",
-  wind = 0.3,
+  wind = 0.35,
   face = "leaf",
-  size = 360,
 }) {
-  const L = Math.max(1, Math.min(10, Math.floor(level)));
+  const w = 380;               // vnútorný viewBox šírka
+  const h = 300;               // vnútorný viewBox výška
+  const leaves = Math.min(6, Math.max(1, Math.floor((level + 1) / 2))); // 1..6
+  const fen = Math.min(8, Math.max(0, Math.floor(level / 2)));           // 0..8
+  const sway = (i) => `${2 + 1.5 * wind + (i % 2 ? 0.2 : 0)}deg`;
 
-  const cfg = useMemo(() => {
-    // počet listov
-    const leaves =
-      L <= 2 ? 1 :
-      L <= 4 ? 2 :
-      L <= 6 ? 3 :
-      L <= 8 ? 4 : 5;
+  // farby
+  const potDark = "#8A4E34";
+  const potMid = "#B67852";
+  const soil = "#2e241c";
+  const leafFill = "#2fb769";
+  const leafFillDark = "#26a65d";
+  const leafStroke = "#146b3f";
 
-    // koľko „dierok“ na list (fenestrácia) – stupňuje sa s levelom
-    const fen =
-      L <= 2 ? 0 :
-      L <= 4 ? 2 :
-      L <= 6 ? 4 :
-      L <= 8 ? 6 : 8;
+  // jednoduchý výraz
+  const isSad = mood === "sad";
+  const isTalk = mood === "talk";
+  const mouthUp = mood === "happy" || isTalk;
 
-    // hĺbka zárezov od okraja (0..1)
-    const notch = L <= 2 ? 0.0 : L <= 4 ? 0.22 : L <= 6 ? 0.34 : L <= 8 ? 0.44 : 0.52;
-
-    // mierka celku (rast)
-    const scale = 0.9 + L * 0.06;
-
-    return { leaves, fen, notch, scale };
-  }, [L]);
-
-  const colors = {
-    leaf: mood === "sad" ? "#79c28d" : "#2fcb78",
-    stroke: mood === "sad" ? "#2a8a56" : "#187e4f",
-    vein: mood === "sad" ? "#2c8c59" : "#157446",
-    potTop: "#3a2a22",
-    potG1: "#B67852",
-    potG2: "#8A4E34",
+  // fenestrácie – generujeme oválne „dierky“ pre masku
+  const fenestrations = (side = "left") => {
+    const elems = [];
+    const sx = side === "left" ? -1 : 1;
+    for (let i = 0; i < fen; i++) {
+      const yy = -5 + i * 10 + (side === "left" ? 0 : 5);
+      const xx = sx * (20 + i * 6);
+      const rx = 6 + (i % 3);
+      const ry = 4 + ((i + 1) % 3);
+      elems.push(
+        <ellipse key={side + i} cx={xx} cy={yy} rx={rx} ry={ry} fill="#000" />
+      );
+    }
+    return elems;
   };
 
-  // Pomocné: vygeneruje „srdcovitý“ list so zárezmi a fenestráciou.
-  // Lokálne súradnice listu: stonka je v (0,0), list smeruje nahor.
-  function Leaf({ side = "left", idx = 0 }) {
-    // základné krivky srdcového listu
-    const dir = side === "left" ? -1 : 1;
-    const w = 78;    // „šírka“ listu
-    const h = 92;    // „výška“ listu
+  // jeden list (srdcový tvar + maska fenestrácií)
+  const Leaf = ({ angle = 0, dist = 0, scale = 1, isFace = false, idx = 0 }) => (
+    <g
+      className="leaf"
+      style={{
+        transformOrigin: "190px 145px",
+        animationDelay: `${0.3 + idx * 0.05}s`,
+      }}
+      transform={`translate(190,145) rotate(${angle}) translate(${dist},0) scale(${scale})`}
+    >
+      <defs>
+        <mask id={`maskL${idx}`}>
+          <rect x="-160" y="-140" width="320" height="300" fill="#fff" />
+          {/* stredová „žilová“ štrbina */}
+          <rect x="-3" y="-70" width="6" height="115" fill="#000" rx="3" />
+          {/* bočné fenestrácie */}
+          {fenestrations("left")}
+          {fenestrations("right")}
+        </mask>
+      </defs>
 
-    // obrys – srdcovitý tvar (horný výrez pri stopke je jemný)
-    const outline = `
-      M 0 0
-      C ${dir * 18} -8, ${dir * 40} -14, ${dir * 52} 10
-      C ${dir * 68} 40, ${dir * 40} ${h}, ${dir * 8} ${h - 8}
-      C ${dir * -10} ${h - 4}, ${dir * -26} ${h - 18}, ${dir * -30} ${h - 40}
-      C ${dir * -36} ${h - 70}, ${dir * -10} -2, 0 0 Z
-    `;
+      {/* tvar listu */}
+      <path
+        d="M0 -84
+           C 64 -84, 108 -40, 108 0
+           C 108 52, 60 88, 0 96
+           C -60 88, -108 52, -108 0
+           C -108 -40, -64 -84, 0 -84 Z"
+        fill={isFace ? leafFill : leafFillDark}
+        stroke={leafStroke}
+        strokeWidth="5"
+        mask={`url(#maskL${idx})`}
+      />
+      {/* stredná žila */}
+      <path d="M0 -70 L 0 80" stroke={leafStroke} strokeWidth="5" />
+      {/* vedľajšie žily */}
+      <path d="M0 -30 C -34 -36, -62 -28, -84 -12" stroke={leafStroke} strokeWidth="4" fill="none"/>
+      <path d="M0 -30 C  34 -36,  62 -28,  84 -12" stroke={leafStroke} strokeWidth="4" fill="none"/>
+      <path d="M0  10 C -40  -2,  -70 14,  -90 34" stroke={leafStroke} strokeWidth="4" fill="none"/>
+      <path d="M0  10 C  40  -2,   70 14,   90 34" stroke={leafStroke} strokeWidth="4" fill="none"/>
 
-    // zárezy (výrezy od okraja smerom k stredovej žile)
-    // počítame pár zakusnutí – ich hĺbka úmerná cfg.notch
-    const notchPaths = [];
-    const nCount = Math.round(3 + cfg.notch * 6); // 3..9
-    for (let i = 0; i < nCount; i++) {
-      const yy = 24 + (i * (h - 40)) / (nCount + 1); // pozdĺž výšky
-      const depth = 10 + cfg.notch * 22;             // hĺbka
-      const span = 10 + (i % 2) * 6;                 // „šírka“ zárezu
-      const x1 = dir * (w - 6);
-      const x2 = dir * (w - 6 - depth);
-      notchPaths.push(
-        <path
-          key={`n-${side}-${i}`}
-          d={`M ${x1} ${yy} q ${dir * -span} -4 ${dir * -span} -10 T ${x2} ${yy - 1}`}
-          stroke={colors.leaf}
-          strokeWidth="10"
-          fill="none"
-          strokeLinecap="round"
-          opacity="0.98"
-        />
-      );
-    }
+      {/* jemný odlesk */}
+      <path d="M-52 -48 C -22 -66, 22 -66, 52 -48" stroke="#bef5d2" strokeOpacity=".5" strokeWidth="6" fill="none"/>
 
-    // fenestrácie (oválne „okienka“ okolo stredovej žily)
-    const fenHoles = [];
-    for (let i = 0; i < cfg.fen; i++) {
-      const ry = 3 + i * 0.6;
-      const rx = 6 + i * 0.8;
-      const yy = 14 + (i * (h - 34)) / (cfg.fen + 1);
-      const xx = dir * (12 + (i % 2 ? 10 : 6)); // strieda sa vzdialenosť
-      fenHoles.push(
-        <ellipse
-          key={`f-${side}-${i}`}
-          cx={xx}
-          cy={yy}
-          rx={rx}
-          ry={ry}
-          fill="#fff"
-          opacity="0.0001" // maskujeme pomocou clipPath nižšie
-        />
-      );
-    }
-
-    // maska: vykrojíme fenestrácie z výplne listu
-    const maskId = `fen-${side}-${idx}`;
-    return (
-      <g className={`leaf leaf-${side}`}>
-        <defs>
-          <mask id={maskId}>
-            {/* plná plocha listu */}
-            <path d={outline} fill="#fff" />
-            {/* „čierna“ by dieru vyrezala, ale v maske je opak, preto použijeme triky: */}
-            {/* Jednoducho urobíme malé tvary transparentné cez „stroke overdraw“, alebo využijeme dvojité prekrytie */}
-          </mask>
-        </defs>
-
-        {/* výplň listu */}
-        <path d={outline} fill={colors.leaf} stroke={colors.stroke} strokeWidth="3" />
-
-        {/* fenestrácie – prekryjeme farbou pozadia hrnca/pozadia (na splash funguje),
-            v appke je lepšie použiť masku/clipPath proti konkrétnemu pozadiu.
-            Aby to fungovalo univerzálne, urobíme „vymazanie“ cez compositing trikom: */}
-        <g style={{ mixBlendMode: "destination-out" }}>{fenHoles}</g>
-
-        {/* žilky */}
-        <path d={`M 0 0 C ${dir * 10} ${h * 0.25}, ${dir * 6} ${h * 0.55}, ${dir * 2} ${h * 0.85}`}
-              stroke={colors.vein} strokeWidth="4" fill="none" opacity="0.6" />
-        <path d={`M ${dir * 8} ${h * 0.28} q ${dir * 14} 10 ${dir * 26} 14`}
-              stroke={colors.vein} strokeWidth="3" fill="none" opacity="0.5" />
-        <path d={`M ${dir * -6} ${h * 0.42} q ${dir * -16} 12 ${dir * -30} 18`}
-              stroke={colors.vein} strokeWidth="3" fill="none" opacity="0.5" />
-      </g>
-    );
-  }
-
-  // Oči + ústa (umiestnime podľa face)
-  function Face() {
-    // tvary úst
-    const mouth =
-      mood === "sad"
-        ? "M 160 188 q 16 -12 32 0"
-        : mood === "talk"
-        ? "M 160 186 q 16 10 32 0"
-        : "M 160 184 q 16 12 32 0";
-
-    return (
-      <g className={`face face-${face}`}>
-        {/* oči */}
-        <g className="eyes">
-          <g>
-            <ellipse cx="168" cy="172" rx="10" ry="10" fill="#111" />
-            <circle cx="166" cy="170" r="3" fill="#fff" />
-            {/* mihalnice (jemné) */}
-            <path d="M158 162 q 4 -6 8 0" stroke="#111" strokeWidth="2" fill="none" strokeLinecap="round" />
+      {/* tvár – iba ak isFace = true a face === "leaf" */}
+      {isFace && face === "leaf" && (
+        <g className="face" transform="translate(0,0)">
+          {/* oči */}
+          <g className="eye" transform="translate(-26,-12)">
+            <circle r="15" fill="#fff" />
+            <circle r="8" cx="2" cy="2" fill="#222" />
+            <circle r="3" cx="6" cy="-1" fill="#fff" />
+            <path d="M-16 -16 q16 -10 32 0" stroke="#222" strokeWidth="4" fill="none" />
           </g>
-          <g>
-            <ellipse cx="208" cy="172" rx="10" ry="10" fill="#111" />
-            <circle cx="206" cy="170" r="3" fill="#fff" />
-            <path d="M198 162 q 4 -6 8 0" stroke="#111" strokeWidth="2" fill="none" strokeLinecap="round" />
+          <g className="eye" transform="translate(26,-12)">
+            <circle r="15" fill="#fff" />
+            <circle r="8" cx="1" cy="2" fill="#222" />
+            <circle r="3" cx="5" cy="-1" fill="#fff" />
+            <path d="M-16 -16 q16 -10 32 0" stroke="#222" strokeWidth="4" fill="none" />
           </g>
+          {/* ústa */}
+          <path
+            d={mouthUp ? "M-24 16 q24 18 48 0" : "M-24 24 q24 -10 48 0"}
+            stroke="#222"
+            strokeWidth="6"
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* jazyk pri happy/talk */}
+          {mouthUp && (
+            <path d="M2 24 q8 10 18 0 q-10 6 -18 0 Z" fill="#ff6b6b" />
+          )}
         </g>
-        {/* ústa */}
-        <path d={mouth} stroke="#111" strokeWidth="5" fill="none" strokeLinecap="round" />
-        {mood !== "sad" && <path d="M176 184 q 6 8 12 0" stroke="#cc3a3a" strokeWidth="3" />}
-      </g>
-    );
-  }
+      )}
+    </g>
+  );
 
-  // Rozmiestnenie listov okolo stonky podľa počtu
-  const leafSlots = useMemo(() => {
-    const base = [
-      { side: "left",  dx: -22, dy: -6,  rot: -18 },
-      { side: "right", dx:  22, dy: -6,  rot:  18 },
-      { side: "left",  dx: -28, dy: -22, rot: -28 },
-      { side: "right", dx:  28, dy: -22, rot:  28 },
-      { side: "right", dx:  10, dy: -36, rot:  8  },
-    ];
-    return base.slice(0, cfg.leaves);
-  }, [cfg.leaves]);
+  // rozloženie bočných listov (okolo hlavného)
+  const sideLeaves = [];
+  const ring = [
+    { a: -26, d: 46, s: 0.88 },
+    { a: 26,  d: 46, s: 0.88 },
+    { a: -48, d: 64, s: 0.78 },
+    { a: 48,  d: 64, s: 0.78 },
+    { a: -70, d: 78, s: 0.68 },
+    { a: 70,  d: 78, s: 0.68 },
+  ];
+  for (let i = 0; i < leaves - 1; i++) {
+    const r = ring[i];
+    sideLeaves.push(<Leaf key={`L${i}`} idx={i} angle={r.a} dist={r.d} scale={r.s} />);
+  }
 
   return (
-    <svg
-      width={size}
-      viewBox="0 0 360 260"
-      style={{ display: "block", maxWidth: "100%" }}
-    >
-      {/* tieň */}
-      <ellipse cx="180" cy="234" rx="110" ry="16" fill="rgba(0,0,0,.12)" />
+    <div className="toon" style={{ width: size, maxWidth: "100%" }}>
+      <svg viewBox={`0 0 ${w} ${h}`} className="svg">
+        {/* tieň */}
+        <ellipse cx="190" cy="270" rx="120" ry="18" fill="rgba(0,0,0,.12)" />
+        {/* kvetináč */}
+        <defs>
+          <linearGradient id="potG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={potMid} />
+            <stop offset="100%" stopColor={potDark} />
+          </linearGradient>
+        </defs>
+        <g className="pot" transform="translate(0,-2)">
+          {/* horný okraj */}
+          <ellipse cx="190" cy="168" rx="115" ry="22" fill={soil} />
+          {/* vnútorný tieň okraja */}
+          <path d="M90 170 Q190 195 290 170" stroke="#000" strokeOpacity=".25" strokeWidth="8" fill="none"/>
+          {/* telo */}
+          <path d="M70 170 L310 170 L282 240 Q190 252 98 240 Z" fill="url(#potG)" />
+          {/* odlesk */}
+          <path d="M98 226 Q190 238 282 226" stroke="#fff" strokeOpacity=".12" strokeWidth="8" fill="none"/>
+          {/* tvár na kvetináči (iba ak face === "pot") */}
+          {face === "pot" && (
+            <g transform="translate(190,210)">
+              <circle cx="-26" cy="-6" r="10" fill="#111"/>
+              <circle cx=" 26" cy="-6" r="10" fill="#111"/>
+              <circle cx="-22" cy="-8" r="3" fill="#fff"/>
+              <circle cx=" 30" cy="-8" r="3" fill="#fff"/>
+              <path d={mouthUp ? "M-20 10 q20 14 40 0" : "M-20 18 q20 -10 40 0"} stroke="#111" strokeWidth="5" fill="none" strokeLinecap="round"/>
+              {mouthUp && <path d="M0 18 q8 8 16 0 q-8 6 -16 0 Z" fill="#ff6b6b" />}
+            </g>
+          )}
+        </g>
 
-      {/* telo kvetináča (vzadu) */}
-      <defs>
-        <linearGradient id="potG" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={colors.potG1} />
-          <stop offset="100%" stopColor={colors.potG2} />
-        </linearGradient>
-      </defs>
-      <path d="M96 140 L264 140 L242 210 Q180 222 118 210 Z" fill="url(#potG)" />
-      {/* hlina */}
-      <ellipse cx="180" cy="144" rx="86" ry="12" fill={colors.potTop} />
-
-      {/* RASTLINA */}
-      <g className="plant" transform={`translate(180,144) scale(${cfg.scale})`}>
-        {/* stonka */}
-        <rect x="-6" y="-2" width="12" height="92" rx="6" fill={colors.vein} />
+        {/* stonky (z hliny nahor) */}
+        <g className="stems" transform="translate(190,168)">
+          <path d="M-8 4 C -8 40, -6 84, -4 110" stroke={leafStroke} strokeWidth="7" fill="none" />
+          <path d="M 8 4 C  8 40,  6 84,  4 110" stroke={leafStroke} strokeWidth="7" fill="none" />
+          <path d="M-8 4 C -4 64, -2 96,  0 118" stroke={leafFillDark} strokeWidth="9" fill="none" />
+          <path d="M 8 4 C  4 64,  2 96,  0 118" stroke={leafFill}     strokeWidth="9" fill="none" />
+        </g>
 
         {/* listy */}
-        {leafSlots.map((s, i) => (
-          <g key={i} transform={`translate(${s.dx},${s.dy}) rotate(${s.rot})`}>
-            <Leaf side={s.side} idx={i} />
-          </g>
-        ))}
-      </g>
+        {sideLeaves}
+        {/* hlavný list s tvárou */}
+        <Leaf isFace idx={99} angle={0} dist={0} scale={1} />
+      </svg>
 
-      {/* tvár – podľa voľby: na liste (default) alebo na kvetináči */}
-      {face === "leaf" ? (
-        <g transform="translate(0,-12)"><Face /></g>
-      ) : (
-        <g transform="translate(0,12)"><Face /></g>
-      )}
-
-      {/* horný okraj kvetináča (prekrytie) */}
-      <ellipse cx="180" cy="140" rx="92" ry="16" fill={colors.potTop} />
-      {/* jemný odlesk */}
-      <path d="M110 156 q70 20 140 0" stroke="#fff" strokeOpacity=".06" strokeWidth="6" />
-
-      {/* animácie */}
-      <style>{`
-        .plant { transform-origin: 180px 230px; animation: breathe 5s ease-in-out infinite; }
-        .leaf { transform-origin: 0 0; animation: sway ${3.4 - wind}s ease-in-out infinite alternate; }
-        .eyes ellipse { animation: blink 6s infinite; transform-origin: center; }
-        @keyframes breathe { 0%{ transform: translateY(0) } 50%{ transform: translateY(-2px) } 100%{ transform: translateY(0) } }
-        @keyframes sway { 0%{ transform: rotate(-1.6deg) } 100%{ transform: rotate(1.6deg) } }
-        @keyframes blink { 0%,96%,100%{ transform: scaleY(1) } 97%,99%{ transform: scaleY(0.1) } }
+      <style jsx>{`
+        .svg { width: 100%; height: auto; overflow: visible; }
+        /* hojdanie vietor */
+        .leaf {
+          animation: sway 3.8s ease-in-out infinite alternate;
+        }
+        .leaf:nth-of-type(2) { animation-duration: 4.2s; }
+        .leaf:nth-of-type(3) { animation-duration: 4.6s; }
+        .leaf:nth-of-type(4) { animation-duration: 3.6s; }
+        .leaf:nth-of-type(5) { animation-duration: 4.0s; }
+        .leaf:nth-of-type(6) { animation-duration: 4.4s; }
+        @keyframes sway {
+          0%   { transform: rotate(-${sway(0)}); }
+          100% { transform: rotate(${sway(1)}); }
+        }
+        /* žmurkanie – cez horné „mihalnice“ (oblúčik) posúvame maskou očí */
+        .face .eye {
+          animation: blink 6s ease-in-out infinite;
+        }
+        .face .eye:nth-child(1) { animation-delay: .2s; }
+        @keyframes blink {
+          0%, 92%, 100% { transform: translateY(0) scaleY(1); }
+          94%           { transform: translateY(3px) scaleY(0.1); }
+          96%           { transform: translateY(0) scaleY(1); }
+        }
       `}</style>
-    </svg>
+    </div>
   );
-}
+        }
