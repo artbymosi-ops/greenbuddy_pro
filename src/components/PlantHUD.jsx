@@ -1,68 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
-import ActionButton from "./ActionButton";
-import { askNotifyPermission, scheduleNotification } from "@/lib/reminders";
-// vo funkcii water():
-askNotifyPermission().then(ok=>{
-  if(ok) scheduleNotification("Greenbuddy", "Čas zaliať 🌿", 2*24*60*60*1000);
-});
-const COOLDOWNS = {
-  water: 2*24*60*60,       // 2 dni
-  fertilize: 14*24*60*60,  // 14 dní
-  spray: 24*60*60,         // 1 deň
-  repot: 90*24*60*60       // 90 dní
-};
+export default function PlantHUD({ state, setState }) {
+  const addXp = (n) => setState((s) => ({ ...s, xp: s.xp + n }));
 
-export default function PlantHUD({ state, setState }){
-  const [last,setLast] = useState(()=>JSON.parse(localStorage.getItem("gb_lastActs")||"{}"));
-  useEffect(()=>localStorage.setItem("gb_lastActs", JSON.stringify(last)),[last]);
+  const water = () => { setState(s => ({ ...s, hydration: Math.min(100, s.hydration + 18) })); addXp(6); };
+  const feed  = () => { setState(s => ({ ...s, nutrients: Math.min(100, s.nutrients + 14) })); addXp(6); };
+  const spray = () => { setState(s => ({ ...s, spray: Math.min(100, s.spray + 12) })); addXp(6); };
+  const repot = () => { setState(s => ({ ...s, nutrients: Math.min(100, s.nutrients + 10), hydration: Math.max(60, s.hydration - 8) })); addXp(10); };
 
-  function stamp(k){ setLast(v=>({ ...v, [k]: Date.now() })); }
-
-  const water = ()=>{ if(!can("water")) return; stamp("water"); setState(s=>({...s, hydration: Math.min(100, s.hydration+25)})); };
-  const fertilize = ()=>{ if(!can("fertilize")) return; stamp("fertilize"); setState(s=>({...s, nutrients: Math.min(100, s.nutrients+20)})); };
-  const spray = ()=>{ if(!can("spray")) return; stamp("spray"); setState(s=>({...s, spray: Math.min(100, (s.spray||0)+20)})); };
-  const repot = ()=>{ if(!can("repot")) return; stamp("repot"); setState(s=>({...s, pot: (s.pot||0)+1 })); };
-
-  function can(k){ const ts=last[k]; if(!ts) return true; return Date.now()-ts >= (COOLDOWNS[k]*1000); }
-
- import ActionButton from "./ActionButton";
-import { WaterIcon, FertilizerIcon, SprayIcon, RepotIcon } from "@/components/icons/PlantIcons";
-// ...
-<div style={{display:"grid",gap:12,gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))"}}>
-  <ActionButton icon={<WaterIcon/>}      label="Gießen"  /* ... */ onClick={water}/>
-  <ActionButton icon={<FertilizerIcon/>} label="Düngen"  /* ... */ onClick={fertilize}/>
-  <ActionButton icon={<SprayIcon/>}      label="Sprühen" /* ... */ onClick={spray}/>
-  <ActionButton icon={<RepotIcon/>}      label="Umtopfen"/* ... */ onClick={repot}/>
-import { WaterIcon, FertilizerIcon, SprayIcon, RepotIcon } from "@/components/icons/PlantIcons";
-
-// predpokladám props/state: hydration, nutrients, spray, ...
-<div style={{display:"grid",gap:12,gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))"}}>
-  <ActionButton
-    icon={<WaterIcon style={{color: meterColor(hydration)}}/>}
-    label="Gießen"
-    onClick={() => { water(); setSpeak(true); setTimeout(()=>setSpeak(false),1200); }}
-    cooldownSec={60*60*24*2} // 2 dni
-    lastTs={lastWaterTs}
-  />
-  <ActionButton
-    icon={<FertilizerIcon style={{color: meterColor(nutrients)}}/>}
-    label="Düngen"
-    onClick={() => { fertilize(); setSpeak(true); setTimeout(()=>setSpeak(false),1200); }}
-    cooldownSec={60*60*24*14} // 2 týždne
-    lastTs={lastFertTs}
-  />
-  <ActionButton
-    icon={<SprayIcon style={{color: meterColor(spray)}}/>}
-    label="Sprühen"
-    onClick={() => { spray(); setSpeak(true); setTimeout(()=>setSpeak(false),1200); }}
-    cooldownSec={60*60*2} // každé 2h
-    lastTs={lastSprayTs}
-  />
-  <ActionButton
-    icon={<RepotIcon/>}
-    label="Umtopfen"
-    onClick={() => { repot(); setSpeak(true); setTimeout(()=>setSpeak(false),1200); }}
-    cooldownSec={60*60*24*90} // cca 3 mesiace
-    lastTs={lastRepotTs}
-  />
-</div>
+  return (
+    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+      <button className="btn"      onClick={water} aria-label="Gießen"  title="Gießen">💧</button>
+      <button className="btn"      onClick={feed}  aria-label="Düngen"  title="Düngen">🧪</button>
+      <button className="btn"      onClick={spray} aria-label="Sprühen" title="Sprühen">🌫️</button>
+      <button className="btn ghost" onClick={repot} aria-label="Umtopfen" title="Umtopfen">🪴</button>
+    </div>
+  );
+}
