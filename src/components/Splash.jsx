@@ -67,35 +67,31 @@ export default function Splash({ next = "/auth/login" }) {
           {/* hlina */}
           <ellipse cx="180" cy="124" rx="84" ry="11" fill="#2a221b" />
 
-          {/* RASTLINA – kreslená PRED telom, ale PREKRYTÁ horným okrajom nižšie */}
-          <g transform="translate(180,124)" className="plant">
-            {/* stonka */}
-            <rect className="stem" x="-5" y="-2" width="10" height="78" rx="5" fill="#2bb36a" />
+          {/* RASTLINA */}
+<g transform="translate(180,124)" className="plant">
+  {/* stonka */}
+  <rect className="stem" x="-4" y="0" width="8" height="72" rx="4" fill="#2bb36a" />
 
-            {/* ľavý list */}
-            <g className="leaf leaf-l" transform="translate(-18,12)">
-              <path
-                d="M0 0 C -44 -10, -72 28, -44 54 C -12 82, 34 54, 16 26 C 10 12, 6 4, 0 0 Z"
-                fill="#2fcf78"
-                stroke="#1a8e57"
-                strokeWidth="3"
-                mask="url(#leafMaskL)"
-              />
-              <path d="M-8 -6 L0 8" stroke="#1a8e57" strokeWidth="3" />
-            </g>
+  {/* ľavý list */}
+  <g className="leaf leaf-l" transform="translate(-16,0)">
+    <path
+      d="M0 0 C -38 -8, -58 26, -34 48 C -10 70, 24 48, 10 22 C 6 10, 3 3, 0 0 Z"
+      fill="#2fcf78"
+      stroke="#1a8e57"
+      strokeWidth="3"
+    />
+  </g>
 
-            {/* pravý list */}
-            <g className="leaf leaf-r" transform="translate(18,12)">
-              <path
-                d="M0 0 C 44 -10, 72 28, 44 54 C 12 82, -34 54, -16 26 C -10 12, -6 4, 0 0 Z"
-                fill="#31c874"
-                stroke="#1a8e57"
-                strokeWidth="3"
-                mask="url(#leafMaskR)"
-              />
-              <path d="M8 -6 L0 8" stroke="#1a8e57" strokeWidth="3" />
-            </g>
-          </g>
+  {/* pravý list */}
+  <g className="leaf leaf-r" transform="translate(16,0)">
+    <path
+      d="M0 0 C 38 -8, 58 26, 34 48 C 10 70, -24 48, -10 22 C -6 10, -3 3, 0 0 Z"
+      fill="#31c874"
+      stroke="#1a8e57"
+      strokeWidth="3"
+    />
+  </g>
+</g>
 
           {/* horný okraj kvetináča – prekryje všetko nad hranou = ilúzia, že vychádza zvnútra */}
           <ellipse cx="180" cy="120" rx="92" ry="18" fill="#3a2a22" />
