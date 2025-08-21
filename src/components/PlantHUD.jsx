@@ -33,5 +33,36 @@ import { WaterIcon, FertilizerIcon, SprayIcon, RepotIcon } from "@/components/ic
   <ActionButton icon={<FertilizerIcon/>} label="Düngen"  /* ... */ onClick={fertilize}/>
   <ActionButton icon={<SprayIcon/>}      label="Sprühen" /* ... */ onClick={spray}/>
   <ActionButton icon={<RepotIcon/>}      label="Umtopfen"/* ... */ onClick={repot}/>
-</div> 
-const meterColor = (v)=> (v<=30 ? "#e53935" : v<=60 ? "#f6a609" : "#2e7d32");
+import { WaterIcon, FertilizerIcon, SprayIcon, RepotIcon } from "@/components/icons/PlantIcons";
+
+// predpokladám props/state: hydration, nutrients, spray, ...
+<div style={{display:"grid",gap:12,gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))"}}>
+  <ActionButton
+    icon={<WaterIcon style={{color: meterColor(hydration)}}/>}
+    label="Gießen"
+    onClick={() => { water(); setSpeak(true); setTimeout(()=>setSpeak(false),1200); }}
+    cooldownSec={60*60*24*2} // 2 dni
+    lastTs={lastWaterTs}
+  />
+  <ActionButton
+    icon={<FertilizerIcon style={{color: meterColor(nutrients)}}/>}
+    label="Düngen"
+    onClick={() => { fertilize(); setSpeak(true); setTimeout(()=>setSpeak(false),1200); }}
+    cooldownSec={60*60*24*14} // 2 týždne
+    lastTs={lastFertTs}
+  />
+  <ActionButton
+    icon={<SprayIcon style={{color: meterColor(spray)}}/>}
+    label="Sprühen"
+    onClick={() => { spray(); setSpeak(true); setTimeout(()=>setSpeak(false),1200); }}
+    cooldownSec={60*60*2} // každé 2h
+    lastTs={lastSprayTs}
+  />
+  <ActionButton
+    icon={<RepotIcon/>}
+    label="Umtopfen"
+    onClick={() => { repot(); setSpeak(true); setTimeout(()=>setSpeak(false),1200); }}
+    cooldownSec={60*60*24*90} // cca 3 mesiace
+    lastTs={lastRepotTs}
+  />
+</div>
