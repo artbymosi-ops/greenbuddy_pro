@@ -182,3 +182,8 @@ export default function PlantPage() {
     </Layout>
   );
             }
+// noc: 22:00–06:00 (lokálny čas)
+const isNight = () => {
+  const h = new Date().getHours();
+  return h >= 22 || h < 6;
+};
