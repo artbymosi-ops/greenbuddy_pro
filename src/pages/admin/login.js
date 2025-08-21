@@ -57,6 +57,19 @@ export default function AdminLogin() {
 
           <button className="btn" type="submit" style={{ width: "100%", marginTop: 12 }}>
             Einloggen
+              <button
+  className="btn ghost"
+  onClick={async () => {
+    // zmaž cookie na serveri
+    await fetch("/api/admin/session", { method: "DELETE" });
+    // vyčisti aj lokálne indície (pre UI)
+    localStorage.removeItem("gb_isAdmin");
+    localStorage.removeItem("gb_admin_email");
+    router.push("/admin/login");
+  }}
+>
+  Abmelden
+</button>
           </button>
         </form>
       </div>
