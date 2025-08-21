@@ -1,7 +1,7 @@
 import Layout from "@/components/Layout";
 import Link from "next/link";
 
-export default function Home() {
+export default function Home(){
   return (
     <Layout title="Greenbuddy">
       <section className="hero card">
@@ -15,9 +15,10 @@ export default function Home() {
             <Link className="btn" href="/plants">Začať</Link>
             <Link className="btn ghost" href="/auth/login">Prihlásiť</Link>
           </div>
-          <p className="subtitle" style={{marginTop:12}}>Admin? <Link href="/admin">Tu sa prihlás</Link></p>
+          <p className="subtitle" style={{marginTop:12}}>
+            Admin? <Link href="/admin">Tu sa prihlás</Link>
+          </p>
         </div>
-
         <div className="hero-visual">
           <div className="buddy">
             <div className="leaf left"></div>
@@ -29,4 +30,4 @@ export default function Home() {
       </section>
     </Layout>
   );
-                                         }
+    }
