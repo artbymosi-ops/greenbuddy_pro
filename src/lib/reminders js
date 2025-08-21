@@ -1,0 +1,11 @@
+export async function askNotifyPermission(){
+  if (typeof window==="undefined" || !("Notification" in window)) return false;
+  if (Notification.permission==="granted") return true;
+  const res = await Notification.requestPermission();
+  return res==="granted";
+}
+
+export function scheduleNotification(title, body, delayMs){
+  if (!("Notification" in window)) return;
+  setTimeout(()=>{ new Notification(title, { body }); }, delayMs);
+}
