@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Layout from "@/components/Layout";
+import { awardCoupon } from "@/lib/coupons";
+
 
 export default function MiniGames(){
   const [running,setRunning]=useState(false);
@@ -85,9 +87,6 @@ export default function MiniGames(){
     </Layout>
   );
                                  }
-import { useEffect, useRef, useState } from "react";
-import Layout from "@/components/Layout";
-import { awardCoupon } from "@/lib/coupons";
 
 export default function MiniGamesPage(){
   const [tab, setTab] = useState("leaves"); // leaves | ladybug
