@@ -1,26 +1,16 @@
 // src/components/Plant2D.jsx
 import React, { useEffect } from "react";
-import MonsteraAvatar from "@/components/MonsteraAvatar";
+import MonsteraToon from "@/components/MonsteraToon";
 
-export default function Plant2D({ state }) {
-  return (
-    <div style={{display:"grid",placeItems:"center"}}>
-      <MonsteraAvatar
-        size={320}
-        level={state?.level ?? 1}
-        mood={state?.mood ?? "happy"}
-        wind={0.6}
-      />
-    </div>
-  );
-}
-/**
- * Plant2D – „tamagoči“ zobrazenie monstery
- * props:
- *  - state: { level: number, mood: "happy"|"neutral"|"sad"|"talk" }
- *  - lastAction: ľubovoľná hodnota, ktorá sa mení pri akcii (na „pípanie“)
- *  - sound: boolean (default true) – krátky „bľabot“ pri zmene nálady/akcii
- */
+// ...
+<MonsteraToon
+  level={state.level}
+  mood={state.alive ? (isNight() ? "neutral" : "happy") : "sad"}
+  wind={0.25}
+  face="leaf"           // alebo "pot", ako chceš
+  size={380}
+/>
+
 export default function Plant2D({ state, lastAction, sound = true }) {
   const level = Math.max(1, state?.level ?? 1);
   const mood = state?.mood ?? "happy";
@@ -61,15 +51,6 @@ export default function Plant2D({ state, lastAction, sound = true }) {
     } catch {}
   }, [mood, lastAction, sound]);
 
-  return (
-    <div className="plant2d">
-      <MonsteraAvatar size={320} level={level} mood={mood} wind={0.6} />
-      <style jsx>{`
-        .plant2d {
-          display: grid;
-          place-items: center;
-          width: 100%;
-        }
       `}</style>
     </div>
   );
