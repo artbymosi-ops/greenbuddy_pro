@@ -16,3 +16,15 @@
     transform: translateY(0);
   }
 }
+/* poloha a skok rastliny */
+.plant{ transform:translateY(60px); animation:popUp .7s ease-out .6s forwards; }
+@keyframes popUp{ from{ transform:translateY(60px); } to{ transform:translateY(-12px); } }
+
+.stem{ transform-origin:0 76px; transform:scaleY(0); animation:grow .9s ease-out .9s forwards; }
+@keyframes grow{ to{ transform:scaleY(1); } }
+
+/* rozvinutie + vietor */
+.leaf{ transform-origin:0 0; transform:translateY(24px) scaleX(0); opacity:0;
+       animation:unfold .45s ease-out 1.25s forwards, sway 3.6s ease-in-out 1.8s infinite alternate; }
+@keyframes unfold{ to{ transform:translateY(0) scaleX(1); opacity:1; } }
+@keyframes sway{ 0%{ transform:rotate(-2deg); } 100%{ transform:rotate(2deg); } }
