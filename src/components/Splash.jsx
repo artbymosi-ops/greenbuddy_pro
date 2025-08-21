@@ -40,3 +40,19 @@ export default function Splash({ next = "/auth/login" }) {
   {/* na titulke už vyrastená */}
   <MonsteraToon level={9} mood="happy" wind={0.45} face="leaf" size={360}/>
 </div>
+{/* na titulke už vyrastená */}
+      <MonsteraToon
+        level={9}
+        mood="happy"
+        wind={0.45}
+        face="leaf"
+        size={360}
+      />
+    </div>
+
+    <style jsx>{`
+      /* tvoje CSS sem */
+    `}</style>
+  </div>
+);
+}
