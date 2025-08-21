@@ -1,155 +1,153 @@
 // src/components/Plant2D.jsx
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 
-const isNight = () => {
-  const h = new Date().getHours();
-  return h >= 22 || h < 6;
-};
-
-/** 2D Monstera
- * props: { state:{hydration,nutrients,spray,level,mood}, lastAction }
+/** 2D Monstera – realistickejšie listy + kvetináč
+ * props: { state:{level, mood}, lastAction }
  */
-export default function Plant2D({ state, lastAction }) {
-  const night = isNight();
+export default function Plant2D({ state = {}, lastAction }) {
+  const level = Math.max(1, Math.min(10, state.level ?? 1));
+  const mood  = state.mood ?? "happy";
+
+  // koľko listov + mierka podľa levelu
+  const cfg = useMemo(() => {
+    const leaves = 3 + Math.floor(level * 0.7); // 3..10
+    const scale  = 0.95 + level * 0.05;
+    const fen    = level >= 2;                   // od levelu 2 už má výrezy
+    return { leaves, scale, fen };
+  }, [level]);
 
   // farby podľa nálady
-  const leafFill   = state?.mood === "sad" ? "#78b78a" : "#35cb7b";
-  const leafStroke = state?.mood === "sad" ? "#2a8a56" : "#1c8b57";
-  const vein       = state?.mood === "sad" ? "#2a8a56" : "#157f4b";
-
-  // veľkosť podľa levelu
-  const scale = useMemo(() => 0.95 + (Math.max(1, state?.level || 1) * 0.06), [state?.level]);
+  const leafFill   = mood === "sad" ? "#6FBF7E" : "#31C46F";
+  const leafStroke = mood === "sad" ? "#2B7D4F" : "#1A8E57";
+  const vein       = mood === "sad" ? "#2A8A56" : "#157F4B";
 
   return (
-    <div style={{ position: "relative" }}>
-      {/* nočný overlay (jemne stmaví) */}
-      {night && <div className="night-overlay on" />}
+    <div style={{ width: "100%", maxWidth: 720, margin: "0 auto" }}>
+      <svg viewBox="0 0 420 320" width="100%" height="auto">
+        {/* podkladový tieň */}
+        <ellipse cx="210" cy="298" rx="110" ry="16" fill="#000" opacity=".12" />
 
-      <svg viewBox="0 0 400 280" width="100%" height="auto" style={{ display:"block" }}>
-        {/* tieň */}
-        <ellipse cx="200" cy="250" rx="110" ry="18" fill="#000" opacity=".18"/>
-
+        {/* T E L O  R A S T L I N Y */}
         {/* stonka */}
-        <rect x="194" y="120" width="12" height="70" rx="6" fill="#2bb36a"/>
+        <rect x="205" y="155" width="10" height="84" rx="6" fill="#2BB36A" />
 
-        {/* listy (dva veľké + jeden menší; jemné „dýchanie“ a reakcia na akcie) */}
-        <Leaf cx={160} cy={120} r={60} fill={leafFill} stroke={leafStroke} vein={vein}
-              className={cls(lastAction)} scale={scale} fenestrated={true} />
-        <Leaf cx={240} cy={120} r={62} fill={leafFill} stroke={leafStroke} vein={vein}
-              className={cls(lastAction)} scale={scale} fenestrated={true} delay=".15s" />
-        <Leaf cx={200} cy={100} r={46} fill={leafFill} stroke={leafStroke} vein={vein}
-              className={cls(lastAction)} scale={scale*0.92} fenestrated={state.level>=4} delay=".3s" />
+        {/* listy – každý je samostatná skupina s maskou výrezov */}
+        {Array.from({ length: cfg.leaves }).map((_, i) => {
+          // rozloženie listov okolo stonky
+          const side  = i % 2 ? 1 : -1;
+          const spread = 24 + (i % 3) * 8;
+          const rot   = side * (12 + (i % 4) * 4);
+          const cx    = 210 + side * (38 + i * 5);
+          const cy    = 180 - (i % 3) * 10 - i * 4;
+          const r     = 44 + (i % 3) * 6; // „veľkosť“ listu
+          const id    = `leafMask${i}`;
 
-        {/* tvárička */}
-        <Face mood={state?.mood || "happy"} night={night} />
+          // jemné oživenie pri poslednej akcii
+          const animClass =
+            lastAction === "spray" ? "leaf-shimmer" :
+            lastAction === "water" ? "leaf-wiggle"  :
+            lastAction === "feed"  ? "leaf-pulse"   : "";
 
-        {/* efekty akcií */}
-        {lastAction==="water"  && <Drops/>}
-        {lastAction==="spray"  && <Mist/>}
-        {lastAction==="feed"   && <Sparkles/>}
+          return (
+            <g key={i} transform={`translate(${cx} ${cy}) rotate(${rot}) scale(${cfg.scale})`}>
+              <defs>
+                {/* maska pre fenestrácie (výrezy) – séra elíps okolo „stredovej žily“ */}
+                <mask id={id}>
+                  <rect x="-120" y="-120" width="240" height="240" fill="#fff" />
+                  {cfg.fen &&
+                    Array.from({ length: 7 }).map((__, k) => (
+                      <ellipse
+                        // dierky smerom k okraju
+                        key={k}
+                        cx={-r * 0.06 + (k - 3) * 9}
+                        cy={-6 + k * 8}
+                        rx={Math.max(3, 4 + k * 0.6)}
+                        ry={Math.max(2, 3 + k * 0.5)}
+                        fill="#000"
+                        transform={`rotate(${side * (k % 2 ? 12 : -8)}) translate(${side * (r * 0.32)} 0)`}
+                      />
+                    ))}
+                </mask>
+              </defs>
+
+              {/* samotný tvar listu – „monstera s lalokmi“ */}
+              <g mask={`url(#${id})`} className={animClass}>
+                <path
+                  d={monsteraPath(r)}
+                  fill={leafFill}
+                  stroke={leafStroke}
+                  strokeWidth="3"
+                  strokeLinejoin="round"
+                />
+                {/* hlavná žila */}
+                <path d={`M0 0 C ${-r * 0.15} ${r * 0.35}, ${-r * 0.35} ${r * 0.62}, ${-r * 0.62} ${r * 0.72}`}
+                      stroke={vein} strokeWidth="4" fill="none" opacity=".55"/>
+              </g>
+            </g>
+          );
+        })}
+
+        {/* T V Á R I Č K A */}
+        <g transform="translate(0,6)">
+          {/* oči */}
+          <circle cx="188" cy="220" r="6" fill="#121518" className="blink-eye" />
+          <circle cx="232" cy="220" r="6" fill="#121518" className="blink-eye" />
+          <circle cx="186" cy="218" r="2" fill="#fff" opacity=".9" />
+          <circle cx="230" cy="218" r="2" fill="#fff" opacity=".9" />
+
+          {/* ústa – nálada */}
+          {mood === "sad" ? (
+            <path d="M188 236 q22 -14 44 0" stroke="#121518" strokeWidth="5" fill="none" strokeLinecap="round"/>
+          ) : (
+            <path d="M188 232 q22 12 44 0" stroke="#121518" strokeWidth="5" fill="none" strokeLinecap="round"/>
+          )}
+        </g>
+
+        {/* K V E T I N Á Č  +  Z E M */}
+        <defs>
+          <linearGradient id="potBody" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%"  stopColor="#8C5A3E"/>
+            <stop offset="100%" stopColor="#5B3A27"/>
+          </linearGradient>
+          <linearGradient id="potRim" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%"  stopColor="#B77B55"/>
+            <stop offset="100%" stopColor="#8C5A3E"/>
+          </linearGradient>
+        </defs>
+
+        {/* okraj */}
+        <rect x="120" y="238" width="180" height="26" rx="13" fill="url(#potRim)"/>
+        {/* zem */}
+        <ellipse cx="210" cy="250" rx="82" ry="11" fill="#3A2318"/>
+        {/* telo kvetináča */}
+        <path d="M138 256 L282 256 L260 300 Q210 308 160 300 Z" fill="url(#potBody)"/>
       </svg>
 
-      {/* Zzz pri spánku */}
-      <div className={`zzz ${night ? "on":""}`}>Z z</div>
-
+      {/* lokálne animácie – ladia s tvojimi globálnymi */}
       <style jsx>{`
-        @keyframes breath{0%{transform:translateY(0)}50%{transform:translateY(-1.5px)}100%{transform:translateY(0)}}
-        @keyframes wobble{0%{transform:rotate(0)}25%{transform:rotate(-1.3deg)}50%{transform:rotate(1.3deg)}100%{transform:rotate(0)}}
-        @keyframes pulse{0%{opacity:.92}50%{opacity:1}100%{opacity:.92}}
-        .leaf{animation:breath 5s ease-in-out infinite; transform-origin: 200px 200px;}
-        .leaf.wiggle{animation:wobble .5s ease;}
-        .leaf.pulse{animation:pulse .6s ease;}
+        .leaf-wiggle { animation: wiggle .45s ease; transform-origin: center; }
+        .leaf-pulse  { animation: pulse  .6s  ease; }
+        .leaf-shimmer{ animation: shimmer .9s ease; }
+        @keyframes wiggle { 0%{transform:rotate(0)}25%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}100%{transform:rotate(0)} }
+        @keyframes pulse  { 0%{filter:none}50%{filter:brightness(1.2)}100%{filter:none} }
+        @keyframes shimmer{ 0%{filter:brightness(1)}50%{filter:brightness(1.35)}100%{filter:brightness(1)} }
       `}</style>
     </div>
   );
 }
 
-function cls(lastAction){
-  return lastAction==="spray" ? "leaf" :
-         lastAction==="water" ? "leaf wiggle" :
-         lastAction==="feed"  ? "leaf pulse" : "leaf";
-}
+/** Tvar listu monstery (jedna strana, mierne „srdcový“ tvar s lalokmi) */
+function monsteraPath(r) {
+  // r ≈ „polomer“ listu. Vráti closed path okolo (0,0), orientované doľava.
+  const w = r * 1.2, h = r * 1.0;
 
-function Leaf({ cx, cy, r, fill, stroke, vein, className, scale=1, fenestrated=false, delay="0s" }){
-  const maskId = `fen-${cx}-${cy}-${r}`;
-  return (
-    <g style={{ transform:`scale(${scale})`, transformOrigin:"200px 200px", animationDelay:delay }}>
-      <defs>
-        <mask id={maskId}>
-          <circle cx={cx} cy={cy} r={r} fill="#fff"/>
-          {fenestrated && Array.from({length: 6}).map((_,i)=>(
-            <ellipse key={i}
-              cx={cx + (i%2 ?  r*0.22 : -r*0.18)}
-              cy={cy + (i*7 - r*0.18)}
-              rx={Math.max(3, r*0.06 + i*0.5)}
-              ry={Math.max(2, r*0.03 + i*0.35)}
-              fill="#000"
-              transform={`rotate(${i%2?12:-8} ${cx} ${cy})`}
-            />
-          ))}
-        </mask>
-      </defs>
-      <g className={className} mask={`url(#${maskId})`}>
-        <circle cx={cx} cy={cy} r={r} fill={fill} stroke={stroke} strokeWidth="3"/>
-        <path d={`M${cx} ${cy} c0 ${r*0.5} -${r*0.35} ${r*0.6} -${r*0.6} ${r*0.7}`}
-              stroke={vein} strokeWidth="4" fill="none" opacity=".55"/>
-      </g>
-    </g>
-  );
-}
-
-function Face({ mood, night }){
-  return (
-    <g transform="translate(0,10)" style={{opacity: night? .6 : 1}}>
-      {/* oči s odleskom */}
-      <g className="blink-eye">
-        <circle cx="170" cy="190" r="6" fill="#121518"/>
-        <circle cx="210" cy="190" r="6" fill="#121518"/>
-        <circle cx="168" cy="188" r="2" fill="#fff" opacity=".9"/>
-        <circle cx="208" cy="188" r="2" fill="#fff" opacity=".9"/>
-      </g>
-      {/* ústa podľa nálady */}
-      {mood==="sad" ? (
-        <path d="M170 206 q20 -14 40 0" stroke="#121518" strokeWidth="5" fill="none" strokeLinecap="round" className="mouth-talk"/>
-      ) : mood==="happy" ? (
-        <path d="M170 200 q20 12 40 0" stroke="#121518" strokeWidth="5" fill="none" strokeLinecap="round" className="mouth-talk"/>
-      ) : (
-        <path d="M170 202 q20 0 40 0" stroke="#121518" strokeWidth="5" fill="none" strokeLinecap="round"/>
-      )}
-    </g>
-  );
-}
-
-function Drops(){
-  return (
-    <g opacity=".9">
-      {Array.from({length:8}).map((_,i)=>(
-        <circle key={i} cx={150+i*18} cy={90} r="3" fill="#62d3ff"
-          style={{animation:"rain .7s ease forwards", animationDelay:`${i*40}ms`}}/>
-      ))}
-      <style jsx>{`@keyframes rain{0%{transform:translateY(-10px);opacity:0}15%{opacity:1}100%{transform:translateY(34px);opacity:0}}`}</style>
-    </g>
-  );
-}
-function Mist(){
-  return (
-    <g opacity=".6">
-      {Array.from({length:9}).map((_,i)=>(
-        <circle key={i} cx={130+i*16} cy={80+(i%3)*6} r="2.6" fill="#cfe9ff"
-          style={{animation:"mist .7s ease forwards", animationDelay:`${i*35}ms`}}/>
-      ))}
-      <style jsx>{`@keyframes mist{0%{transform:translateX(0);opacity:0}20%{opacity:.6}100%{transform:translateX(38px);opacity:0}}`}</style>
-    </g>
-  );
-}
-function Sparkles(){
-  return (
-    <g>
-      {Array.from({length:10}).map((_,i)=>(
-        <circle key={i} cx={180} cy={120} r="3" fill="#a7f3d0"
-          style={{transformOrigin:"180px 120px",animation:"spark .8s ease forwards",animationDelay:`${i*40}ms`}}/>
-      ))}
-      <style jsx>{`@keyframes spark{0%{transform:scale(.6);opacity:0}40%{opacity:1}100%{transform:scale(1.5);opacity:0}}`}</style>
-    </g>
-  );
+  // horný lalok + bočné laloky
+  return [
+    `M 0 0`,
+    `c ${-w*0.15} ${-h*0.45}, ${-w*0.65} ${-h*0.55}, ${-w*0.75} ${-h*0.10}`, // hore vľavo
+    `c ${-w*0.10} ${h*0.30}, ${-w*0.05} ${h*0.55}, ${w*0.10} ${h*0.80}`,    // spodok
+    `c ${w*0.30} ${h*0.15}, ${w*0.60} ${-h*0.05}, ${w*0.65} ${-h*0.40}`,   // späť hore
+    `c ${-w*0.05} ${-h*0.18}, ${-w*0.22} ${-h*0.22}, ${-w*0.10} ${-h*0.30}`, // horný „zub“
+    `Z`,
+  ].join(" ");
 }
