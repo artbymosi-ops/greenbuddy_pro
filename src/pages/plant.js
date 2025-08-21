@@ -187,3 +187,8 @@ const isNight = () => {
   const h = new Date().getHours();
   return h >= 22 || h < 6;
 };
+const [night, setNight] = useState(isNight());
+useEffect(() => {
+  const t = setInterval(() => setNight(isNight()), 60_000);
+  return () => clearInterval(t);
+}, []);
