@@ -312,3 +312,4 @@ h3 { font-size: 18px; margin: 0 0 4px; }
   10% { opacity:.9; }
   100% { transform: translateY(-18px) scale(1.15); opacity:0; }
 }
+src/components/PlantHUD.jsx
