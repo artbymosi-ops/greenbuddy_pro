@@ -7,7 +7,11 @@ if(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON
     supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   });
 }
-
+import { REACTIONS } from "@/lib/emojiReactions";
+const SAFE_REACTIONS = Array.isArray(REACTIONS) && REACTIONS.length ? REACTIONS : [
+  { id: "like", emoji: "👍", label: "Like" },
+  { id: "love", emoji: "❤️", label: "Love" },
+];
 export default function ReactionBar({ post, onReact }){
   const [counts, setCounts] = useState({}); // {emoji: n}
   const [mine, setMine]     = useState({}); // {emoji: true}
