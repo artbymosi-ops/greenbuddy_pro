@@ -192,3 +192,26 @@ useEffect(() => {
   const t = setInterval(() => setNight(isNight()), 60_000);
   return () => clearInterval(t);
 }, []);
+<div style={{position:"relative"}}>
+  {/* SVG rastlina */}
+  <div className={night ? "asleep" : ""}>
+    {/* ...TU ostáva tvoj existujúci SVG výstup... */}
+  </div>
+
+  {/* Zzz bubliny */}
+  <div className={`zzz ${night ? "on":""}`}>Z z</div>
+
+  {/* nočný overlay so „hviezdami“ */}
+  <div className={`night-overlay ${night ? "on":""}`}>
+    <div className="stars">
+      {/* pár hviezd – náhodné rozmiestnenie */}
+      <i style={{left:"12%", top:"14%", animationDelay:"0s"}}/>
+      <i style={{left:"28%", top:"26%", animationDelay:".7s"}}/>
+      <i style={{left:"44%", top:"10%", animationDelay:"1.1s"}}/>
+      <i style={{left:"66%", top:"22%", animationDelay:".2s"}}/>
+      <i style={{left:"78%", top:"8%",  animationDelay:"1.5s"}}/>
+      <i style={{left:"18%", top:"40%", animationDelay:".9s"}}/>
+      <i style={{left:"86%", top:"36%", animationDelay:".3s"}}/>
+    </div>
+  </div>
+</div>
