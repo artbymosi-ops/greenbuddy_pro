@@ -1,29 +1,26 @@
-// src/components/Layout.js
-import Link from "next/link";
+import Head from "next/head";
+import Header from "@/components/Header";
 
-export default function Layout({ children }) {
+export default function Layout({ title, children }) {
+  const page = title ? `${title} • Greenbuddy` : "Greenbuddy";
+
   return (
-    <div className="wrap">
-      <header className="header">
-        <div className="brand">
-          <Link href="/">Greenbuddy</Link>
-        </div>
+    <>
+      <Head>
+        <title>{page}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Prémiové fonty (Google Fonts) */}
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Fraunces:opsz,wght@9..144,700&display=swap" rel="stylesheet"/>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
 
-        {/* Navigácia v hlavičke */}
-        <nav className="nav">
-          <Link href="/plants">Pflanzen</Link>
-          <Link href="/calendar">Kalender</Link>
-          <Link href="/diary">Tagebuch</Link>
-          <Link href="/forum">Forum</Link>
-          <Link href="/chat">AI-Chat</Link>
-        </nav>
-      </header>
+      <Header />
 
-      <main className="main">{children}</main>
+      <main className="container page">{children}</main>
 
-      <footer className="footer">
-        © {new Date().getFullYear()} Greenbuddy
+      <footer className="site-footer">
+        <div className="container">© {new Date().getFullYear()} Greenbuddy</div>
       </footer>
-    </div>
+    </>
   );
 }
