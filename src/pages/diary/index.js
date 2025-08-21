@@ -128,7 +128,11 @@ export default function DiaryPage() {
         <p className="subtitle">Notiere Wachstum, Pflege und hänge Fotos an. Perfekt für <i>Vorher/Nachher</i>.</p>
 
         <form onSubmit={addEntry} className="ev-form" style={{marginTop:12}}>
-          <div className="grid grid-3" style={{gap:12}}>
+    {/* ...tri stĺpce (Datum / Pflanze / Höhe) ponechaj, len sme nahradili className */}
+  </div>
+  {/* zvyšok nechaj */}
+</form>
+          <div className="grid grid" style={{gap:12}}>
             <div>
               <label className="subtitle">Datum</label>
               <input type="date" className="input" value={date} onChange={e=>setDate(e.target.value)} />
