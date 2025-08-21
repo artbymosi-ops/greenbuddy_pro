@@ -49,15 +49,10 @@ export default function Plant2D({ state, lastAction, sound = true, face = "leaf"
     } catch {}
   }, [mood, lastAction, sound]);
 
-  return (
-    <div style={{ display: "grid", placeItems: "center" }}>
-      <MonsteraToon
-        level={level}
-        mood={mood}
-        wind={0.25}
-        face={face}     // "leaf" alebo "pot"
-        size={size}     // napr. 360–420
-      />
-    </div>
-  );
-}
+<MonsteraToon
+  size={340}
+  level={state.level}                  // 1..10+
+  mood={state.alive ? state.mood : "sad"}
+  wind={0.25}
+  face="leaf"
+/>
