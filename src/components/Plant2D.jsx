@@ -2,20 +2,21 @@
 import React, { useEffect } from "react";
 import MonsteraToon from "@/components/MonsteraToon";
 
-// ...
-<MonsteraToon
-  level={state.level}
-  mood={state.alive ? (isNight() ? "neutral" : "happy") : "sad"}
-  wind={0.25}
-  face="leaf"           // alebo "pot", ako chceš
-  size={380}
-/>
+// pomocník na noc
+const isNight = () => {
+  const h = new Date().getHours();
+  return h >= 21 || h < 6;
+};
 
-export default function Plant2D({ state, lastAction, sound = true }) {
+export default function Plant2D({ state, lastAction, sound = true, face = "leaf", size = 380 }) {
   const level = Math.max(1, state?.level ?? 1);
-  const mood = state?.mood ?? "happy";
+  // ak používaš aj state.mood, môžeš to tu prepísať:
+  const mood =
+    state?.alive === false ? "sad" :
+    isNight() ? "neutral" :
+    (state?.mood ?? "happy");
 
-  // veľmi jemný zvuk pri akcii/nálade (bez knižníc)
+  // jemný „pip“ zvuk pri zmene nálady/akcii
   useEffect(() => {
     if (!sound) return;
     try {
@@ -34,10 +35,7 @@ export default function Plant2D({ state, lastAction, sound = true }) {
       let i = 0;
       const t = setInterval(() => {
         gain.gain.setTargetAtTime(0.08, ctx.currentTime, 0.005);
-        setTimeout(
-          () => gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.01),
-          120
-        );
+        setTimeout(() => gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.01), 120);
         if (++i > 8) {
           clearInterval(t);
           try { osc.stop(); ctx.close(); } catch {}
@@ -51,7 +49,15 @@ export default function Plant2D({ state, lastAction, sound = true }) {
     } catch {}
   }, [mood, lastAction, sound]);
 
-      `}</style>
+  return (
+    <div style={{ display: "grid", placeItems: "center" }}>
+      <MonsteraToon
+        level={level}
+        mood={mood}
+        wind={0.25}
+        face={face}     // "leaf" alebo "pot"
+        size={size}     // napr. 360–420
+      />
     </div>
   );
 }
