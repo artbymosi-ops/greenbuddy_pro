@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 /**
- * Plant3D – DE-only voice + lines
+ * Plant3D – prémiový vzhľad + DE voice lines
  * Props:
  *  - state: { hydration, nutrients, spray, xp, level, mood }
  *  - lastAction: 'water'|'feed'|'spray'|'repot'|null
@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 export default function Plant3D({ state, lastAction=null }) {
   const wrap = useRef(null);
 
-  // --- Zeit / Schlaf --------------------------------------------------------
+  // --- Čas / noc ------------------------------------------------------------
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const t = setInterval(()=>setNow(new Date()), 60_000);
@@ -18,7 +18,7 @@ export default function Plant3D({ state, lastAction=null }) {
   const hour = now.getHours();
   const isNight = hour >= 22 || hour < 7;
 
-  // --- Audio + Sprache (DE) -------------------------------------------------
+  // --- Zvuk + reč (DE) ------------------------------------------------------
   const ac = useRef(null);
   const beep = (f=560, dur=.1, type="sine") => {
     try {
@@ -32,13 +32,11 @@ export default function Plant3D({ state, lastAction=null }) {
     } catch {}
   };
 
-  // milý nemecký hlas (ak je k dispozícii)
   const speak = (text) => {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
-    // prednosť DE ženským / „pekným“ hlasom
     const pref = voices.find(v => /^de(-|_)/i.test(v.lang) && /(female|Google|Wavenet|Marlene|Lea|Vicki|Jenny)/i.test(v.name))
               || voices.find(v => /^de(-|_)/i.test(v.lang))
               || voices[0];
@@ -49,34 +47,12 @@ export default function Plant3D({ state, lastAction=null }) {
   };
 
   const LINES = {
-    water: [
-      "Ahh, das tut gut! Danke fürs Gießen.",
-      "Frisches Wasser – ich fühle mich lebendig!",
-      "Genau richtig, mein Durst war groß."
-    ],
-    feed: [
-      "Lecker Dünger – das gibt Kraft!",
-      "Nährstoffe! Jetzt kann ich wachsen.",
-      "Mmh, das schmeckt meiner Wurzel."
-    ],
-    spray: [
-      "Feiner Nebel! Meine Blätter glitzern.",
-      "Danke, die Luftfeuchte ist perfekt.",
-      "Aaaah, so erfrischend!"
-    ],
-    repot: [
-      "Neues Zuhause – ich liebe diesen Topf!",
-      "Frische Erde, mehr Platz – danke!",
-      "So kann ich besser atmen und wachsen."
-    ],
-    night: [
-      "Pssst… Schlafenszeit. Bis morgen!",
-      "Ich ruhe mich aus und träume vom Wachsen."
-    ],
-    morning: [
-      "Guten Morgen! Bereit für einen sonnigen Tag.",
-      "Ich strecke meine Blätter – hallo Welt!"
-    ],
+    water: ["Ahh, das tut gut! Danke fürs Gießen.","Frisches Wasser – ich fühle mich lebendig!","Genau richtig, mein Durst war groß."],
+    feed:  ["Lecker Dünger – das gibt Kraft!","Nährstoffe! Jetzt kann ich wachsen.","Mmh, das schmeckt meiner Wurzel."],
+    spray: ["Feiner Nebel! Meine Blätter glitzern.","Danke, die Luftfeuchte ist perfekt.","Aaaah, so erfrischend!"],
+    repot: ["Neues Zuhause – ich liebe diesen Topf!","Frische Erde, mehr Platz – danke!","So kann ich besser atmen und wachsen."],
+    night: ["Pssst… Schlafenszeit. Bis morgen!","Ich ruhe mich aus und träume vom Wachsen."],
+    morning: ["Guten Morgen! Bereit für einen sonnigen Tag.","Ich strecke meine Blätter – hallo Welt!"],
     lowCare: {
       hydration: "Ich habe etwas Durst… vielleicht ein Schlückchen?",
       nutrients: "Ein wenig Dünger würde mir gut tun.",
@@ -101,7 +77,7 @@ export default function Plant3D({ state, lastAction=null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[hour]);
 
-  // jemné pripomienky (každých 10 min, len cez deň)
+  // pripomienky starostlivosti (10 min, len cez deň)
   useEffect(()=>{
     if (isNight) return;
     const t = setInterval(()=>{
@@ -112,10 +88,15 @@ export default function Plant3D({ state, lastAction=null }) {
     return ()=>clearInterval(t);
   },[state, isNight]);
 
-  // --- rast + 3D vrstvy -----------------------------------------------------
+  // --- rast + layout --------------------------------------------------------
   const growth = useMemo(()=>{
     const lvl = Math.min(6, Math.max(1, state.level||1));
-    return { leaves: 3 + Math.floor(lvl), fenestrated: lvl >= 3, scale: 0.95 + lvl*0.12 };
+    return {
+      leaves: Math.min(8, 1 + Math.floor(lvl)), // 1..6 (max 8 pre budúcnosť)
+      fenestrated: lvl >= 3,
+      plantScale: 0.96 + lvl*0.06,
+      potScale: 0.96 + (lvl-1)*0.04
+    };
   },[state.level]);
 
   // parallax podľa myši/dotyku
@@ -123,12 +104,11 @@ export default function Plant3D({ state, lastAction=null }) {
     const el = wrap.current; if (!el) return;
     const onMove = (e)=>{
       const r = el.getBoundingClientRect();
-      const cx = "touches" in e ? e.touches[0].clientX : e.clientX;
-      const cy = "touches" in e ? e.touches[0].clientY : e.clientY;
-      const x = (cx - r.left)/r.width - .5;
-      const y = (cy - r.top)/r.height - .5;
+      const p = "touches" in e ? e.touches[0] : e;
+      const x = (p.clientX - r.left)/r.width - .5;
+      const y = (p.clientY - r.top)/r.height - .5;
       el.style.setProperty("--tiltX", `${Math.max(-10, Math.min(10, -y*10))}deg`);
-      el.style.setProperty("--tiltY", `${Math.max(-10, Math.min(10, x*10))}deg`);
+      el.style.setProperty("--tiltY", `${Math.max(-10, Math.min(10,  x*10))}deg`);
     };
     const reset = ()=>{ el.style.setProperty("--tiltX","0deg"); el.style.setProperty("--tiltY","0deg"); };
     el.addEventListener("mousemove", onMove);
@@ -138,14 +118,20 @@ export default function Plant3D({ state, lastAction=null }) {
     return ()=>{ el.removeEventListener("mousemove", onMove); el.removeEventListener("touchmove", onMove); el.removeEventListener("mouseleave", reset); el.removeEventListener("touchend", reset); };
   },[]);
 
-  // prepracovaný list (s „dýchaním“ a fenestráciou)
+  // --- List (Monstera) ------------------------------------------------------
   const Leaf = ({i})=>{
-    const a = -35 + i*(70/Math.max(1,growth.leaves-1));
-    const s = growth.scale*(.92 + (i%3)*.06);
-    const hue = 150 + (i%3)*6;
+    const count = Math.max(1, growth.leaves);
+    const base = -32;
+    const spread = 64;
+    const a = count === 1 ? 0 : base + (i*(spread/(count-1)));
+    const s = growth.plantScale * (0.9 + (i%3)*0.05);
+
+    const hue = 150 + (i%3)*5;
     const fill = `hsl(${hue} 55% ${isNight?26:38}%)`;
     const stroke= `hsl(${hue} 60% ${isNight?18:28}%)`;
     const mid = `hsl(${hue} 70% ${isNight?22:34}%)`;
+
+    // organický tvar + jemný „stopkový“ žliabok
     const path = `
       M0,0
       C 28,-24 74,-24 92,4
@@ -153,21 +139,23 @@ export default function Plant3D({ state, lastAction=null }) {
       C 2,92 -22,70 -22,48
       C -18,24 -4,12 0,0 Z
     `;
+
     const fen = growth.fenestrated && (
       <>
-        <path d="M20 16 C36 8 56 8 70 16" stroke="rgba(0,0,0,.22)" strokeWidth="3" fill="none"/>
-        <path d="M16 32 C36 22 62 22 78 32" stroke="rgba(0,0,0,.18)" strokeWidth="3" fill="none"/>
-        <path d="M12 48 C34 38 56 38 70 48" stroke="rgba(0,0,0,.14)" strokeWidth="3" fill="none"/>
+        <path d="M20 16 C36 8 56 8 70 16" stroke="rgba(255,255,255,.28)" strokeWidth="3" fill="none"/>
+        <path d="M16 32 C36 22 62 22 78 32" stroke="rgba(255,255,255,.22)" strokeWidth="3" fill="none"/>
+        <path d="M12 48 C34 38 56 38 70 48" stroke="rgba(255,255,255,.18)" strokeWidth="3" fill="none"/>
       </>
     );
-    // akcie -> jemné efekty
+
     const cls =
       lastAction==='water' ? 'leaf-wiggle' :
       lastAction==='spray' ? 'leaf-shimmer':
       lastAction==='feed'  ? 'leaf-pulse'  : '';
 
     return (
-      <g transform={`translate(200,135) rotate(${a}) scale(${s})`} className={`layer leaf3d ${cls} leaf-breathe`}>
+      <g transform={`translate(200,135) rotate(${a}) scale(${s})`}
+         className={`layer leaf3d ${cls} leaf-breathe`}>
         <path d={path} fill={fill} stroke={stroke} strokeWidth="3" filter="url(#leafLight)"/>
         {fen}
         <path d="M2 10 C30 48 46 64 68 80" stroke={mid} strokeWidth="4" fill="none"/>
@@ -175,10 +163,31 @@ export default function Plant3D({ state, lastAction=null }) {
     );
   };
 
+  // tvar úst podľa nálady
+  const mouthPath = (() => {
+    if (state.mood === 'sad')   return "M34 10 q16 -8 32 0";
+    if (state.mood === 'happy') return "M34 6 q16 8 32 0";
+    return "M34 8 q16 6 32 0";
+  })();
+
+  // jemné mikropohyby očí (živší look)
+  const [blink, setBlink] = useState(false);
+  useEffect(()=>{
+    let id;
+    const loop = () => {
+      setBlink(true);
+      setTimeout(()=>setBlink(false), 120);
+      id = setTimeout(loop, 2400 + Math.random()*2200);
+    };
+    id = setTimeout(loop, 1800 + Math.random()*1600);
+    return ()=>clearTimeout(id);
+  },[]);
+
   return (
     <div ref={wrap} className={`plant3d ${isNight?'night':''}`}>
       <svg viewBox="0 0 400 300" width="100%" height="auto" className="scene">
         <defs>
+          {/* soft lesk na listoch */}
           <filter id="leafLight">
             <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="b"/>
             <feSpecularLighting in="b" surfaceScale="2" specularConstant="0.6" specularExponent="12" lightingColor="#ffffff" result="spec">
@@ -187,30 +196,58 @@ export default function Plant3D({ state, lastAction=null }) {
             <feComposite in="spec" in2="SourceAlpha" operator="in" result="specOut"/>
             <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="specOut"/></feMerge>
           </filter>
+
+          {/* vnútorný tieň pre črepník */}
+          <filter id="innerShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feOffset dx="0" dy="-1"/>
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="arithmetic" k2="-1" k3="1" />
+          </filter>
+
           <filter id="softGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-          <linearGradient id="potG" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#8b5a3c"/><stop offset="100%" stopColor="#603a25"/></linearGradient>
-          <linearGradient id="rimG" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#a77554"/><stop offset="100%" stopColor="#7b5037"/></linearGradient>
-          <linearGradient id="soilG" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#3b2a21"/><stop offset="100%" stopColor="#2a1d16"/></linearGradient>
+
+          {/* terakota gradienty */}
+          <linearGradient id="terracotta" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#b26d47"/>
+            <stop offset="60%" stopColor="#935233"/>
+            <stop offset="100%" stopColor="#6f3c26"/>
+          </linearGradient>
+          <linearGradient id="terracottaRim" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#c07a52"/>
+            <stop offset="100%" stopColor="#8a5034"/>
+          </linearGradient>
+          <linearGradient id="soilG" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#3b2a21"/>
+            <stop offset="100%" stopColor="#2a1d16"/>
+          </linearGradient>
         </defs>
 
-        {/* tieň */}
+        {/* tieň na podlahe */}
         <ellipse cx="200" cy="272" rx="120" ry="16" fill="rgba(0,0,0,.35)"/>
 
-        {/* Topf (3D) */}
-        <g className="layer pot3d">
-          <rect x="95" y="176" width="210" height="82" rx="22" fill="url(#potG)"/>
-          <rect x="82" y="162" width="236" height="34" rx="17" fill="url(#rimG)"/>
+        {/* Črepník – zúžený tvar (terakota) */}
+        <g className="layer pot3d" transform={`translate(200,205) scale(${growth.potScale}) translate(-200,-205)`}>
+          {/* okraj */}
+          <path d="M80 162 Q200 138 320 162 L320 182 Q200 206 80 182 Z"
+                fill="url(#terracottaRim)" filter="url(#innerShadow)"/>
+          {/* misa (užšie dno) */}
+          <path d="M110 182 Q200 198 290 182 L270 250 Q200 264 130 250 Z"
+                fill="url(#terracotta)"/>
+          {/* zemina */}
           <ellipse cx="200" cy="176" rx="96" ry="14" fill="url(#soilG)"/>
-          <path d="M110 186 C140 178 200 178 232 186" stroke="rgba(255,255,255,.16)" strokeWidth="6" fill="none"/>
+          {/* highlight */}
+          <path d="M120 190 C160 186 240 186 280 190"
+                stroke="rgba(255,255,255,.18)" strokeWidth="5" fill="none"/>
         </g>
 
-        {/* Stiel */}
-        <rect x="194" y="120" width="12" height="60" rx="6" fill={isNight?"#0d5e3a":"#1b8e58"} className="layer stem3d"/>
+        {/* Stonka */}
+        <rect x="196" y="118" width="8" height="64" rx="4"
+              fill={isNight?"#0d5e3a":"#1b8e58"} className="layer stem3d"/>
 
-        {/* Blätter */}
-        {Array.from({length:growth.leaves}).map((_,i)=><Leaf key={i} i={i}/>)}
+        {/* Listy */}
+        {Array.from({length:growth.leaves}).map((_,i)=><Leaf key={i} i={i} />)}
 
-        {/* Gesicht / Schlaf */}
+        {/* Tvár – prémiové očká s odleskom */}
         <g transform="translate(150,210)" className="layer">
           {isNight ? (
             <>
@@ -220,14 +257,26 @@ export default function Plant3D({ state, lastAction=null }) {
             </>
           ) : (
             <>
-              <rect x="22" y="0" width="6" height="6" fill="#131313" rx="1"/>
-              <rect x="74" y="0" width="6" height="6" fill="#131313" rx="1"/>
-              <path d={`M34 ${state.mood==='sad'?10:6} q16 ${state.mood==='sad'?-8:8} 32 0`} stroke="#131313" strokeWidth="3" fill="none" strokeLinecap="round"/>
+              {/* ľavé oko */}
+              <g transform={`translate(24,3) scale(${blink?1:1})`}>
+                <circle cx="5" cy="3" r="5" fill="#0f1112"/>
+                <circle cx="3.2" cy="1.6" r="1.6" fill="#ffffff" opacity=".9"/>
+                <circle cx="6.6" cy="4.0" r=".8" fill="#ffffff" opacity=".8"/>
+              </g>
+              {/* pravé oko */}
+              <g transform={`translate(76,3) scale(${blink?1:1})`}>
+                <circle cx="5" cy="3" r="5" fill="#0f1112"/>
+                <circle cx="3.2" cy="1.6" r="1.6" fill="#ffffff" opacity=".9"/>
+                <circle cx="6.6" cy="4.0" r=".8" fill="#ffffff" opacity=".8"/>
+              </g>
+              {/* ústa */}
+              <path d={mouthPath}
+                    stroke="#121212" strokeWidth="3.2" fill="none" strokeLinecap="round"/>
             </>
           )}
         </g>
 
-        {/* Effekte */}
+        {/* Efekty po akcii */}
         {lastAction==='water'  && <Drops/>}
         {lastAction==='spray'  && <Sparkles/>}
       </svg>
@@ -254,4 +303,4 @@ function Sparkles(){
       ))}
     </g>
   );
-            }
+      }
