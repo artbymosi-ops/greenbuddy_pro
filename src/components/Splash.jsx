@@ -1,6 +1,11 @@
 // src/components/Splash.jsx
 import { useEffect } from "react";
-import MonsteraAvatar from "@/components/MonsteraAvatar";
+import MonsteraToon from "@/components/MonsteraToon";
+
+// ...
+<div className="stage" aria-hidden>
+  <MonsteraToon level={9} mood="happy" wind={0.5} face="pot" size={360}/>
+</div>
 
 // ...
 <div className="stage" aria-hidden>
