@@ -4,7 +4,7 @@ import Layout from "@/components/Layout";
 import Layout from "@/components/Layout";
 import PlantHUD from "@/components/PlantHUD";
 import { useEffect, useMemo, useState } from "react";
-
+<a className="btn" href="/minigames" style={{marginTop:12}}>🎮 Minihry (získaj XP & kupóny)</a>
 function isNight() { const h=new Date().getHours(); return h>=21 || h<6; }
 
 export default function PlantPage(){
