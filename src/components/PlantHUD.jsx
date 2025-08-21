@@ -34,3 +34,4 @@ import { WaterIcon, FertilizerIcon, SprayIcon, RepotIcon } from "@/components/ic
   <ActionButton icon={<SprayIcon/>}      label="Sprühen" /* ... */ onClick={spray}/>
   <ActionButton icon={<RepotIcon/>}      label="Umtopfen"/* ... */ onClick={repot}/>
 </div> 
+const meterColor = (v)=> (v<=30 ? "#e53935" : v<=60 ? "#f6a609" : "#2e7d32");
