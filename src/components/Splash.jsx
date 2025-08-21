@@ -34,11 +34,11 @@ export default function Splash({ next = "/auth/login" }) {
 
       <p className="tag">deine spielerische Pflanzen-App</p>
 
-      {/* ── NOVÁ ANIMÁCIA POD TEXTOM ── */}
+      {/* ── ANIMOVANÁ RASTLINKA ── */}
       <div className="stage" aria-hidden>
-        <svg viewBox="0 0 320 180" className="hero">
+        <svg viewBox="0 0 320 200" className="hero">
           {/* tieň */}
-          <ellipse cx="160" cy="155" rx="90" ry="14" fill="rgba(0,0,0,.08)" />
+          <ellipse cx="160" cy="178" rx="90" ry="14" fill="rgba(0,0,0,.08)" />
 
           {/* kvetináč */}
           <g className="pot">
@@ -48,76 +48,76 @@ export default function Splash({ next = "/auth/login" }) {
                 <stop offset="100%" stopColor="#8A4E34" />
               </linearGradient>
             </defs>
-            <ellipse cx="160" cy="90" rx="82" ry="16" fill="#3a2a22" />
+            {/* okraj hrnca */}
+            <ellipse cx="160" cy="118" rx="86" ry="16" fill="#3a2a22" />
+            {/* telo hrnca */}
             <path
-              d="M80 90 L240 90 L220 140 Q160 150 100 140 Z"
+              d="M74 118 L246 118 L224 168 Q160 178 96 168 Z"
               fill="url(#potG)"
             />
+            {/* odlesk */}
             <path
-              d="M95 102 Q160 115 225 102"
+              d="M98 130 Q160 142 222 130"
               stroke="#fff"
               strokeOpacity=".08"
               strokeWidth="6"
               fill="none"
             />
+            {/* zemina */}
+            <ellipse cx="160" cy="122" rx="78" ry="10" fill="#2a221b" />
           </g>
 
-          {/* stonka – vyrastie */}
-          <rect
-            className="stem"
-            x="156"
-            y="92"
-            width="8"
-            height="56"
-            rx="4"
-            fill="#2bb36a"
-          />
+          {/* PLANT – kreslíme relatívne od vrchu stonky */}
+          <g className="plant" transform="translate(160,122)">
+            {/* stonka – vyrastie z „pôdy“ hore */}
+            <rect
+              className="stem"
+              x="-4"
+              y="-2"
+              width="8"
+              height="64"
+              rx="4"
+              fill="#2bb36a"
+            />
 
-          {/* pravý list – objaví sa a jemne sa hojdá */}
-          <g className="leaf leaf-r">
-            <path
-              d="M190 102
-                 c24 6 30 34 6 48
-                 c-26 14 -58 -8 -40 -28
-                 c10 -12 20 -18 34 -20 z"
-              fill="#2fcf78"
-              stroke="#1a8e57"
-              strokeWidth="3"
-            />
-            {/* jednoduchá „fenestrácia“ */}
-            <path
-              d="M196 120 l10 6 M188 114 l10 6 M182 128 l8 6"
-              stroke="#e9fff2"
-              strokeWidth="6"
-              strokeLinecap="round"
-            />
-          </g>
+            {/* ĽAVÝ LIST */}
+            <g className="leaf leaf-l" transform="translate(-14,10) rotate(-18)">
+              {/* tvar listu – jemný „Monstera“ feeling */}
+              <path
+                d="M0 0
+                   C -38 -6, -58 26, -36 48
+                   C -10 74, 28 52, 18 26
+                   C 12 8, 8 2, 0 0 Z"
+                fill="#2fcf78"
+                stroke="#1a8e57"
+                strokeWidth="3"
+              />
+              {/* svetlé „otvory“ – fenestrácia */}
+              <path d="M-12 -2 c-16 8 -22 16 -10 22" stroke="#eafff3" strokeWidth="6" strokeLinecap="round"/>
+              <path d="M-6 10 c-12 6 -14 10 -6 16"   stroke="#eafff3" strokeWidth="6" strokeLinecap="round"/>
+              <path d="M2 20 c-10 4 -10 8 -2 12"    stroke="#eafff3" strokeWidth="6" strokeLinecap="round"/>
+            </g>
 
-          {/* ľavý list */}
-          <g className="leaf leaf-l">
-            <path
-              d="M130 102
-                 c-24 6 -30 34 -6 48
-                 c26 14 58 -8 40 -28
-                 c-10 -12 -20 -18 -34 -20 z"
-              fill="#31c874"
-              stroke="#1a8e57"
-              strokeWidth="3"
-            />
-            <path
-              d="M118 120 l-10 6 M126 114 l-10 6 M132 128 l-8 6"
-              stroke="#e9fff2"
-              strokeWidth="6"
-              strokeLinecap="round"
-            />
+            {/* PRAVÝ LIST */}
+            <g className="leaf leaf-r" transform="translate(14,10) rotate(18)">
+              <path
+                d="M0 0
+                   C 38 -6, 58 26, 36 48
+                   C 10 74, -28 52, -18 26
+                   C -12 8, -8 2, 0 0 Z"
+                fill="#31c874"
+                stroke="#1a8e57"
+                strokeWidth="3"
+              />
+              <path d="M12 -2 c16 8 22 16 10 22" stroke="#eafff3" strokeWidth="6" strokeLinecap="round"/>
+              <path d="M6 10 c12 6 14 10 6 16"   stroke="#eafff3" strokeWidth="6" strokeLinecap="round"/>
+              <path d="M-2 20 c10 4 10 8 2 12"   stroke="#eafff3" strokeWidth="6" strokeLinecap="round"/>
+            </g>
           </g>
         </svg>
 
-        {/* nenápadné „svetelné“ bublinky */}
-        <i />
-        <i />
-        <i />
-        <i />
+        {/* jemné „svetelné“ bublinky */}
+        <i /><i /><i /><i />
       </div>
 
       <style jsx>{`
@@ -155,132 +155,34 @@ export default function Splash({ next = "/auth/login" }) {
           animation: rise 650ms cubic-bezier(0.2, 0.9, 0.2, 1.1) forwards;
           will-change: transform, opacity;
         }
-        h1 span:nth-child(odd) {
-          transform: translateY(24px) scale(0.96) rotate(3deg);
-        }
-        .tag {
-          margin: 6px 0 2px;
-          opacity: 0;
-          animation: fade 900ms ease 1.9s forwards;
-        }
+        h1 span:nth-child(odd) { transform: translateY(24px) scale(0.96) rotate(3deg); }
+        .tag { margin: 6px 0 2px; opacity: 0; animation: fade 900ms ease 1.9s forwards; }
 
-        /* ── stage s animovanou rastlinkou ── */
-        .stage {
-          width: min(560px, 90vw);
-          height: 220px;
-          position: relative;
-          display: grid;
-          place-items: center;
-          margin-top: 6px;
-        }
-        .hero {
-          width: 100%;
-          height: auto;
-          overflow: visible;
-        }
-        .stem {
-          transform-origin: 160px 148px; /* spodok stonky */
-          transform: scaleY(0);
-          animation: grow 900ms ease-out 900ms forwards;
-        }
-        .leaf {
-          transform-origin: 160px 148px;
-          transform: scale(0.2) translateY(30px);
-          opacity: 0;
-          animation: leafIn 600ms ease-out 1200ms forwards,
-            sway 3.4s ease-in-out 2s infinite alternate;
-        }
-        .leaf-l {
-          animation-delay: 1180ms, 2000ms;
-        }
-        .leaf-r {
-          animation-delay: 1280ms, 2100ms;
-        }
+        /* ── stage ── */
+        .stage { width: min(560px, 92vw); height: 240px; position: relative; display: grid; place-items: center; margin-top: 6px; }
+        .hero { width: 100%; height: auto; overflow: visible; }
 
-        /* „bublinky“ – jemný ambient */
-        .stage i {
-          position: absolute;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #c7f3d9;
-          opacity: 0.8;
-          left: 20%;
-          top: 80%;
-          animation: floatUp 5s linear infinite;
-          filter: blur(0.2px);
-        }
-        .stage i:nth-of-type(2) {
-          left: 75%;
-          animation-duration: 6s;
-          animation-delay: 0.7s;
-        }
-        .stage i:nth-of-type(3) {
-          left: 55%;
-          animation-duration: 7s;
-          animation-delay: 1.2s;
-        }
-        .stage i:nth-of-type(4) {
-          left: 35%;
-          animation-duration: 5.5s;
-          animation-delay: 0.4s;
-        }
+        /* animácie rastliny */
+        .stem { transform-origin: 0 62px; transform: scaleY(0); animation: grow 900ms ease-out 800ms forwards; }
+        .leaf { transform-origin: 0 0; transform: scale(0.2) translateY(30px); opacity: 0; animation: leafIn 600ms ease-out 1100ms forwards, sway 3.4s ease-in-out 1.8s infinite alternate; }
+        .leaf-l { animation-delay: 1080ms, 1800ms; }
+        .leaf-r { animation-delay: 1180ms, 1900ms; }
+
+        /* bublinky */
+        .stage i { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #c7f3d9; opacity: .8; left: 20%; top: 86%; animation: floatUp 5s linear infinite; filter: blur(.2px); }
+        .stage i:nth-of-type(2){ left: 75%; animation-duration: 6s; animation-delay: .7s; }
+        .stage i:nth-of-type(3){ left: 55%; animation-duration: 7s; animation-delay: 1.2s; }
+        .stage i:nth-of-type(4){ left: 35%; animation-duration: 5.5s; animation-delay: .4s; }
 
         /* keyframes */
-        @keyframes rise {
-          to {
-            transform: translateY(0) scale(1) rotate(0deg);
-            opacity: 1;
-          }
-        }
-        @keyframes fade {
-          to {
-            opacity: 0.8;
-          }
-        }
-        @keyframes pop {
-          from {
-            transform: scale(0.8);
-            opacity: 0;
-          }
-          to {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-        @keyframes grow {
-          to {
-            transform: scaleY(1);
-          }
-        }
-        @keyframes leafIn {
-          to {
-            transform: scale(1) translateY(0);
-            opacity: 1;
-          }
-        }
-        @keyframes sway {
-          0% {
-            transform: rotate(-2deg) translateX(-1px);
-          }
-          100% {
-            transform: rotate(2deg) translateX(1px);
-          }
-        }
-        @keyframes floatUp {
-          0% {
-            transform: translateY(0) scale(1);
-            opacity: 0.0;
-          }
-          15% {
-            opacity: 0.6;
-          }
-          100% {
-            transform: translateY(-110px) scale(0.9);
-            opacity: 0;
-          }
-        }
+        @keyframes rise { to { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; } }
+        @keyframes fade { to { opacity: .8; } }
+        @keyframes pop { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes grow { to { transform: scaleY(1); } }
+        @keyframes leafIn { to { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes sway { 0% { transform: rotate(-2deg) translateX(-1px); } 100% { transform: rotate(2deg) translateX(1px); } }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 0; } 15% { opacity: .6; } 100% { transform: translateY(-120px) scale(.9); opacity: 0; } }
       `}</style>
     </div>
   );
-        }
+              }
