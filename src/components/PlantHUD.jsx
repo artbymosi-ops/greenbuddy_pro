@@ -25,12 +25,12 @@ export default function PlantHUD({ state, setState }){
 
   function can(k){ const ts=last[k]; if(!ts) return true; return Date.now()-ts >= (COOLDOWNS[k]*1000); }
 
-  return (
-    <div style={{display:"grid",gap:12,gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))"}}>
-      <ActionButton id="water" icon="💧" label="Gießen" cooldownSec={COOLDOWNS.water} lastTs={last.water} onClick={water}/>
-      <ActionButton id="fert"  icon="🪴" label="Düngen" cooldownSec={COOLDOWNS.fertilize} lastTs={last.fertilize} onClick={fertilize}/>
-      <ActionButton id="spray" icon="🌫️" label="Sprühen" cooldownSec={COOLDOWNS.spray} lastTs={last.spray} onClick={spray}/>
-      <ActionButton id="repot" icon="🧺" label="Umtopfen" cooldownSec={COOLDOWNS.repot} lastTs={last.repot} onClick={repot}/>
-    </div>
-  );
-}
+ import ActionButton from "./ActionButton";
+import { WaterIcon, FertilizerIcon, SprayIcon, RepotIcon } from "@/components/icons/PlantIcons";
+// ...
+<div style={{display:"grid",gap:12,gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))"}}>
+  <ActionButton icon={<WaterIcon/>}      label="Gießen"  /* ... */ onClick={water}/>
+  <ActionButton icon={<FertilizerIcon/>} label="Düngen"  /* ... */ onClick={fertilize}/>
+  <ActionButton icon={<SprayIcon/>}      label="Sprühen" /* ... */ onClick={spray}/>
+  <ActionButton icon={<RepotIcon/>}      label="Umtopfen"/* ... */ onClick={repot}/>
+</div> 
