@@ -280,3 +280,35 @@ h3 { font-size: 18px; margin: 0 0 4px; }
 }
 .btn svg { transition: transform .15s ease; }
 .btn:hover svg { transform: translateY(-1px) scale(1.04); }
+/* --- NIGHT MODE OVERLAY + STARS --- */
+.night-overlay {
+  position:absolute; inset:0; pointer-events:none;
+  background: radial-gradient(80% 60% at 50% 0%, rgba(0,0,0,.25), transparent 60%),
+              radial-gradient(120% 80% at 50% 120%, rgba(0,0,0,.35), transparent 70%);
+  opacity:0; transition: opacity .4s ease;
+}
+.night-overlay.on { opacity:1; }
+
+/* hviezdy */
+.stars { position:absolute; inset:0; overflow:hidden; opacity:.85; }
+.stars i{
+  position:absolute; width:2px; height:2px; background:#fff; border-radius:50%;
+  animation: twinkle 3.6s infinite ease-in-out;
+  opacity:.6;
+}
+@keyframes twinkle {
+  0%,100% { transform: scale(1); opacity:.6; }
+  50%     { transform: scale(1.6); opacity:1; }
+}
+
+/* jemné „zosivenie“ rastlinky počas spánku */
+.asleep { filter: saturate(.75) brightness(.92); }
+
+/* malé Zzz bubliny pri spánku */
+.zzz { position:absolute; right:22px; top:6px; font-weight:800; opacity:0; }
+.zzz.on { animation: zed 2.6s infinite ease-in-out; opacity:.9; }
+@keyframes zed {
+  0% { transform: translateY(0) scale(1); opacity:0; }
+  10% { opacity:.9; }
+  100% { transform: translateY(-18px) scale(1.15); opacity:0; }
+}
