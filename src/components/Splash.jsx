@@ -1,24 +1,15 @@
 // src/components/Splash.jsx
 import { useEffect } from "react";
-import MonsteraToon from "@/components/MonsteraToon";
+import MonsteraToon from "@/components/MonsteraToon"; // ← ak máš MonsteraAvatar, zmeň import aj použitie dolu
 
-// ...
-<div className="stage" aria-hidden>
-  <MonsteraToon level={9} mood="happy" wind={0.5} face="pot" size={360}/>
-</div>
-
-// ...
-<div className="stage" aria-hidden>
-  {/* na úvod chcem už vyrastenú – pokojne level 8–10 */}
-  <MonsteraAvatar size={360} level={9} mood="happy" wind={0.5} />
-</div>
 export default function Splash({ next = "/auth/login" }) {
   useEffect(() => {
+    // bezpečne len v prehliadači
     const seen = typeof window !== "undefined" && localStorage.getItem("gb_seen_splash");
     const t = setTimeout(() => {
       if (!seen) localStorage.setItem("gb_seen_splash", "1");
       window.location.replace(next);
-    }, 2800); // trvanie, kým prepneme na auth
+    }, 2800);
     return () => clearTimeout(t);
   }, [next]);
 
@@ -45,9 +36,11 @@ export default function Splash({ next = "/auth/login" }) {
 
       <p className="tag">deine spielerische Pflanzen-App</p>
 
-      {/* Monstera – finálna verzia s očami nad okrajom a realist. fenestráciou */}
+      {/* jedna „stage“ s vyrastenou monsterou */}
       <div className="stage" aria-hidden>
-        <MonsteraAvatar size={340} level={6} mood="happy" wind={0.5} />
+        <MonsteraToon level={9} mood="happy" wind={0.5} face="pot" size={360} />
+        {/* ak používaš MonsteraAvatar, potom: 
+            <MonsteraAvatar size={360} level={9} mood="happy" wind={0.5} face="pot" /> */}
       </div>
 
       <style jsx>{`
@@ -102,6 +95,7 @@ export default function Splash({ next = "/auth/login" }) {
           place-items: center;
         }
 
+        /* animácie titulku */
         @keyframes letterIn {
           to {
             opacity: 1;
