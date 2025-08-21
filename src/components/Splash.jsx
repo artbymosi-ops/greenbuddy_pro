@@ -1,7 +1,6 @@
 // src/components/Splash.jsx
 import { useEffect } from "react";
 import MonsteraAvatar from "@/components/MonsteraAvatar";
-import MonsteraAvatar from "@/components/MonsteraAvatar";
 
 // ...
 <div className="stage" aria-hidden>
