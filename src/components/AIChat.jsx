@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function AIChat({ seedPrompt = "Meine Pflanze hat gelbe Blätter – was tun?", plantContext }) {
+export default function AIChat({
+  seedPrompt = "Meine Pflanze hat gelbe Blätter – was tun?",
+  plantContext
+}) {
   const [msgs, setMsgs] = useState([
     { role: "assistant", content: "Hi! Ich bin Greenbuddy 🌿. Wie kann ich deiner Pflanze helfen?" }
   ]);
@@ -9,25 +12,36 @@ export default function AIChat({ seedPrompt = "Meine Pflanze hat gelbe Blätter 
   const [attach, setAttach] = useState([]); // File[]
   const listRef = useRef(null);
 
-  useEffect(()=>{
+  useEffect(() => {
     listRef.current?.scrollTo(0, listRef.current.scrollHeight);
-  },[msgs, busy]);
+  }, [msgs, busy]);
+
+  async function toDataURL(file){
+    return new Promise((res, rej)=>{
+      const r = new FileReader();
+      r.onload = ()=>res(r.result); // "data:image/..;base64,...."
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+  }
 
   async function send(e){
     e?.preventDefault?.();
     const text = input.trim();
-    if(!text && attach.length===0) return;
+    if (!text && attach.length === 0) return;
 
-    const userMsg = { role:"user", content:text || "(Bild gesendet)" };
+    const userMsg = { role: "user", content: text || "(Bild gesendet)" };
     setMsgs(prev => [...prev, userMsg]);
     setInput("");
     setBusy(true);
 
-    // upload priložených fotiek do dočasných URL (dataURL fallback)
+    // premeníme fotky na dataURL (funguje aj offline)
     const imageUrls = [];
     for (const f of attach) {
-      const url = await toDataURL(f);
-      imageUrls.push(url);
+      try {
+        const url = await toDataURL(f);
+        imageUrls.push(url);                // data:... URL
+      } catch {}
     }
     setAttach([]);
 
@@ -38,7 +52,7 @@ export default function AIChat({ seedPrompt = "Meine Pflanze hat gelbe Blätter 
         body: JSON.stringify({
           messages: msgs.concat([userMsg]),
           context: { plant: plantContext || null },
-          images: imageUrls // ak budeš chcieť, vymeníme za Supabase public URL
+          images: imageUrls
         })
       });
       const data = await res.json();
@@ -76,26 +90,22 @@ export default function AIChat({ seedPrompt = "Meine Pflanze hat gelbe Blätter 
 
       <form onSubmit={send} className="ev-form" style={{display:"grid", gridTemplateColumns:"1fr auto", gap:8}}>
         <div style={{display:"grid", gap:6}}>
-          <input className="input" placeholder={seedPrompt} value={input} onChange={e=>setInput(e.target.value)} />
-          <input className="input" type="file" multiple accept="image/*" onChange={(e)=>setAttach([...e.target.files])} />
+          <input
+            className="input"
+            placeholder={seedPrompt}
+            value={input}
+            onChange={e=>setInput(e.target.value)}
+          />
+          <input
+            className="input"
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e)=>setAttach([...e.target.files])}
+          />
         </div>
         <button className="btn" disabled={busy} type="submit">{busy?"Sende…":"Senden"}</button>
       </form>
     </div>
   );
-}
-
-function toDataURL(file){
-  return new Promise((res, rej)=>{
-    const r = new FileReader();
-    r.onload = ()=>res(r.result);
-    r.onerror = rej;
-    r.readAsDataURL(file);
-  });
-}
-<AIChat plantContext={{
-  species: "Monstera deliciosa",
-  light: "hell, indirekt",
-  watering: "alle 5 Tage",
-  lastActions: "gesprüht gestern, gedüngt vor 2 Wochen"
-}}/>
+                }
