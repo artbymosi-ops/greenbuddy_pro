@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
-
+import Layout from "@/components/Layout";
+export default function Page(){ return <Layout title="Názov"><div className="card"><h2>Názov</h2><p>Obsah príde neskôr.</p></div></Layout>; }
 let supabase=null;
 if(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY){
   import("@supabase/supabase-js").then(({createClient})=>{
