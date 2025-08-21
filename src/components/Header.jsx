@@ -1,85 +1,43 @@
-import Link from "next/link";
-import { useEffect, useState } from "react";
-// + pridaj tento import
-import LangSwitch from "@/components/LangSwitch";
 import { useState } from "react";
 import LangSwitch from "./LangSwitch";
 
 export default function Header() {
-  const [open, setOpen] = useState(false); // tu pridáš stav
-
-  return (
-    <header>
-      <LangSwitch />
-      <button
-        className={`hamb ${open ? "active" : ""}`}
-        aria-label="Menü"
-        onClick={() => setOpen(!open)}
-      >
-        ☰
-      </button>
-
-      {open && (
-        <nav className="mobile-nav">
-          <a href="/">Domov</a>
-          <a href="/meine-pflanze">Moja rastlina</a>
-          <a href="/forum">Fórum</a>
-        </nav>
-      )}
-    </header>
-  );
-}
-// ...vo vnútri returnu, vpravo do .h-right pred hamburger:
-<div className="h-right">
-  <LangSwitch />
-  <button
-    className={`hamb ${open ? "is-open" : ""}`}
-    aria-label="Menü"
-    onClick={() => setOpen(v=>!v)}
-  >
-    <span/><span/><span/>
-  </button>
-</div>
-export default function Header() {
   const [open, setOpen] = useState(false);
-  useEffect(()=>{ document.body.style.overflow = open ? "hidden" : ""; }, [open]);
 
   return (
-    <header className="site-header">
-      <div className="container header-row">
-        <Link href="/" className="brand">
-          <span className="mascot" aria-hidden>🪴</span>
-          <span className="brand-text">Greenbuddy</span>
-        </Link>
+    <header className="nav">
+      <div className="nav-inner">
+        {/* logo/brand */}
+        <div className="brand">🌱 Greenbuddy</div>
 
+        {/* pravá strana */}
         <div className="h-right">
+          <LangSwitch />
+
+          {/* hamburger */}
           <button
             className={`hamb ${open ? "is-open" : ""}`}
-            aria-label="Menü"
-            onClick={() => setOpen(v=>!v)}
+            aria-label="Menu"
+            onClick={() => setOpen((v) => !v)}
           >
-            <span/><span/><span/>
+            ☰
           </button>
         </div>
       </div>
 
-      <nav className={`drawer ${open ? "open" : ""}`} onClick={()=>setOpen(false)}>
-        <div className="drawer-panel" onClick={(e)=>e.stopPropagation()}>
-          <div className="drawer-head">
-            <span className="mascot big">🪴</span>
-            <strong>Menü</strong>
-          </div>
-          <Link href="/plants" className="drawer-link">Pflanzen</Link>
-          <Link href="/calendar" className="drawer-link">Kalender</Link>
-          <Link href="/diary" className="drawer-link">Tagebuch</Link>
-          <Link href="/forum" className="drawer-link">Forum</Link>
-          <Link href="/chat" className="drawer-link">AI-Chat</Link>
-          <hr/>
-          <Link href="/auth/login" className="drawer-link">Anmelden</Link>
-          <Link href="/auth/register" className="drawer-link">Registrieren</Link>
-          <Link href="/admin" className="drawer-link">Admin</Link>
-        </div>
-      </nav>
+      {/* mobilné menu */}
+      {open && (
+        <nav className="menu open">
+          <ul>
+            <li><a href="/">Domov</a></li>
+            <li><a href="/meine-pflanze">Moja rastlina</a></li>
+            <li><a href="/kalender">Kalendár</a></li>
+            <li><a href="/tagebuch">Denník</a></li>
+            <li><a href="/forum">Fórum</a></li>
+            <li><a href="/admin">Admin</a></li>
+          </ul>
+        </nav>
+      )}
     </header>
   );
-                                                             }
+      }
