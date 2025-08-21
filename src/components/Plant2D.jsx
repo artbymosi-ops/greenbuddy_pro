@@ -2,6 +2,18 @@
 import React, { useEffect } from "react";
 import MonsteraAvatar from "@/components/MonsteraAvatar";
 
+export default function Plant2D({ state }) {
+  return (
+    <div style={{display:"grid",placeItems:"center"}}>
+      <MonsteraAvatar
+        size={320}
+        level={state?.level ?? 1}
+        mood={state?.mood ?? "happy"}
+        wind={0.6}
+      />
+    </div>
+  );
+}
 /**
  * Plant2D – „tamagoči“ zobrazenie monstery
  * props:
