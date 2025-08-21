@@ -72,6 +72,11 @@ export default function PlantPage(){
                        C 150 10, 220 20, 210 70
                        C 200 110, 145 120, 120 70 Z"
                     fill={color}/>
+                         import Leaf from "@/components/Leaf";
+
+// ... v SVG:
+<Leaf level={state.level || 1} side="left"  fill={color}/>
+<Leaf level={state.level || 1} side="right" fill={color}/>
               {/* zárezy monstery */}
               <path d="M70 60 l15 10 M85 45 l18 14 M155 45 l-18 14 M170 60 l-15 10"
                     stroke="#2b8d5e" strokeWidth="6" strokeLinecap="round"/>
