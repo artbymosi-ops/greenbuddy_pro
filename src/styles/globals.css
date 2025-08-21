@@ -254,3 +254,27 @@ h3 { font-size: 18px; margin: 0 0 4px; }
   75% { transform: translate(70%,60%); }
   100% { transform: translate(0,0); }
 }
+/* pohupovanie listov */
+.sway { animation: sway 4s ease-in-out infinite; transform-origin: 50% 0%; }
+.sway.slow { animation-duration: 6s; }
+@keyframes sway {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(2.2deg); }
+  50%  { transform: rotate(0deg); }
+  75%  { transform: rotate(-2.2deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* žmurknutie – každých pár sekúnd */
+.blink-eye { transform-origin: center; animation: blink 5s linear infinite; }
+@keyframes blink {
+  0%, 96%, 100% { transform: scaleY(1); }
+  97%, 99%      { transform: scaleY(0.1); }
+}
+
+/* „rozprávanie“ – krátke otvorenie úst  */
+.mouth-talk { animation: talk 0.9s ease-in-out 2; }
+@keyframes talk {
+  0%,100% { transform: scaleY(1); }
+  50%     { transform: scaleY(1.7); }
+}
