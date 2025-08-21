@@ -1,7 +1,13 @@
 // src/components/Splash.jsx
 import { useEffect } from "react";
 import MonsteraAvatar from "@/components/MonsteraAvatar";
+import MonsteraAvatar from "@/components/MonsteraAvatar";
 
+// ...
+<div className="stage" aria-hidden>
+  {/* na úvod chcem už vyrastenú – pokojne level 8–10 */}
+  <MonsteraAvatar size={360} level={9} mood="happy" wind={0.5} />
+</div>
 export default function Splash({ next = "/auth/login" }) {
   useEffect(() => {
     const seen = typeof window !== "undefined" && localStorage.getItem("gb_seen_splash");
