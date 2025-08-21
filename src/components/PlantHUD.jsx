@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import ActionButton from "./ActionButton";
-
+import { askNotifyPermission, scheduleNotification } from "@/lib/reminders";
+// vo funkcii water():
+askNotifyPermission().then(ok=>{
+  if(ok) scheduleNotification("Greenbuddy", "Čas zaliať 🌿", 2*24*60*60*1000);
+});
 const COOLDOWNS = {
   water: 2*24*60*60,       // 2 dni
   fertilize: 14*24*60*60,  // 14 dní
