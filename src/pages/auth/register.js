@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/utils/supabaseClient'
-
+import Layout from "@/components/Layout";
+export default function Page(){ return <Layout title="Názov"><div className="card"><h2>Názov</h2><p>Obsah príde neskôr.</p></div></Layout>; }
 export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
