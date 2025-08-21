@@ -1,6 +1,42 @@
 import Link from "next/link";
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useState } from "react";
 
+export default function Header(){
+  const { pathname } = useRouter();
+  const [open, setOpen] = useState(false);
+
+  // zobraz menu všade okrem "/" (landing)
+  const showMenu = pathname !== "/";
+
+  return (
+    <header className="site-header">
+      <div className="container" style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <Link href="/" className="brand">Greenbuddy</Link>
+
+        {showMenu ? (
+          <>
+            <button className="menu-btn" onClick={()=>setOpen(v=>!v)} aria-label="Menu">☰</button>
+            {open && (
+              <nav className="menu">
+                <Link href="/">Start</Link>
+                <Link href="/plant">Meine Pflanze</Link>
+                <Link href="/calendar">Kalender</Link>
+                <Link href="/diary">Tagebuch</Link>
+                <Link href="/forum">Forum</Link>
+                <Link href="/admin">Admin</Link>
+              </nav>
+            )}
+          </>
+        ) : (
+          <div /> /* prázdne miesto – nech sa nerozpadne layout */
+        )}
+      </div>
+    </header>
+  );
+}
 export default function Header() {
   const [open, setOpen] = useState(false);
 
