@@ -227,3 +227,16 @@ h3 { font-size: 18px; margin: 0 0 4px; }
 
 /* ===== Footer ===== */
 .site-footer { margin:28px 0; color:#5b6c60; }
+.badge { display:inline-flex; align-items:center; gap:8px; padding:6px 10px;
+  background:#fff; border-radius:999px; font-weight:700; font-size:12px; color:#2F6E3D; }
+.badge .dot { width:8px; height:8px; background:#2F6E3D; border-radius:999px; display:inline-block; }
+
+.flex-center { display:flex; align-items:center; justify-content:center; }
+.brand-text { font-weight:800; }
+
+.buddy { position: relative; width: 220px; height: 220px; }
+.buddy .pot  { position:absolute; bottom:0; width:180px; height:70px; background:#8a583a; border-radius:22px; }
+.buddy .stem { position:absolute; bottom:72px; left:50%; width:8px; height:60px; background:#2f7d32; border-radius:4px; transform:translateX(-50%); }
+.buddy .leaf { position:absolute; bottom:110px; width:90px; height:60px; background:#5fbf5a; border-radius:60px/70px 70px 40px 40px; box-shadow: inset 0 0 0 3px #2f7d32; }
+.buddy .leaf.left  { left:30px; transform:rotate(-18deg); }
+.buddy .leaf.right { right:30px; transform:rotate(18deg); }
