@@ -1,0 +1,46 @@
+import Link from "next/link";
+import { useState, useEffect } from "react";
+
+export default function Header() {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+  }, [open]);
+
+  return (
+    <header className="site-header">
+      <div className="container header-row">
+        <Link href="/" className="brand">
+          <span className="mascot" aria-hidden>🪴</span>
+          <span className="brand-text">Greenbuddy</span>
+        </Link>
+
+        <div className="h-right">
+          <button className={`hamb ${open ? "is-open" : ""}`} onClick={()=>setOpen(v=>!v)} aria-label="Menü">
+            <span/><span/><span/>
+          </button>
+        </div>
+      </div>
+
+      {/* Drawer */}
+      <nav className={`drawer ${open ? "open" : ""}`} onClick={()=>setOpen(false)}>
+        <div className="drawer-panel" onClick={(e)=>e.stopPropagation()}>
+          <div className="drawer-head">
+            <span className="mascot big">🪴</span>
+            <strong>Menü</strong>
+          </div>
+          <Link href="/plants" className="drawer-link">Pflanzen</Link>
+          <Link href="/calendar" className="drawer-link">Kalender</Link>
+          <Link href="/diary" className="drawer-link">Tagebuch</Link>
+          <Link href="/forum" className="drawer-link">Forum</Link>
+          <Link href="/chat" className="drawer-link">AI-Chat</Link>
+          <hr/>
+          <Link href="/auth/login" className="drawer-link">Anmelden</Link>
+          <Link href="/auth/register" className="drawer-link">Registrieren</Link>
+          <Link href="/admin" className="drawer-link">Admin</Link>
+        </div>
+      </nav>
+    </header>
+  );
+}
