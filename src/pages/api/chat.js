@@ -1,43 +1,33 @@
-import Layout from "@/components/Layout";
-export default function Page(){ return <Layout title="Názov"><div className="card"><h2>Názov</h2><p>Obsah príde neskôr.</p></div></Layout>; }// src/pages/api/chat.js
+// src/pages/api/chat.js
 export const config = { api: { bodyParser: { sizeLimit: "10mb" } } };
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini"; // môžeš zmeniť vo Verceli
+const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   try {
     const { messages = [], context = {}, images = [] } = req.body || {};
 
-    // Bezpečnostné minimum: zreťazíme text + obrázky do messages pre OpenAI
     const lastUser = messages.filter(m => m.role === "user").slice(-1)[0]?.content || "";
     const languageHint = detectLang(lastUser) || "de";
 
     const system = `
 Du bist "Greenbuddy", ein freundlicher, präziser Pflanzen-Coach für Zimmerpflanzen.
-Antworte in der Sprache der letzten Nutzer-Nachricht; wenn unklar, antworte auf Deutsch.
-Ziele:
-- Stelle zuerst 1–3 klärende Fragen, wenn Infos chýbajú (Licht, Gießrhythmus, Substrat, Temperatur, Zugluft).
-- Dann gib priorisierte Diagnose-Hypothesen (am häufigsten -> am zriedkavejšie) s krátkymi symptomami.
-- Daj konkrétne kroky: heute / diese Woche / langfristig.
-- Zahrň rozsahy: frekvencia zálievky, množstvo svetla (lux/okno), vlhkosť %, teploty.
-- Ak je problém nebezpečný (huba, hniloba), varuj a navrhni izoláciu/karanténu.
-- Pri obrázkoch ohodnoť, čo vidíš (listy, škodcovia, machule...).
-- Nakoniec ponúkni krátky "Pflege-Plan" (bullet points) a checklist.
-- Krátke, praktické, bez zbytočnej omáčky.
-
-Output formát:
-- krátka odpoveď (odseky + • bullets), bez JSON.
+Antworte in der Sprache der letzten Nutzer-Nachricht (fallback Deutsch).
+Vorgehen:
+- Stelle zuerst 1–3 kurze Klärungsfragen, falls nötig (Licht, Gießrhythmus, Substrat, Temp., Zugluft).
+- Gib priorisierte Hypothesen mit typischen Symptomen.
+- Nenne konkrete Schritte: heute / diese Woche / langfristig (messbar: ml, % r.F., Lux, °C).
+- Warne bei Risiken (Fäulnis, Pilz), schlage Isolation vor.
+- Wenn Bilder, beschreibe kurz, was du erkennst.
+- Schließe mit einem Mini-Pflegeplan (• bullets).
 `;
 
-    // Vstavané obrázky (image_url) – AI ich vie zohľadniť
-    const userContent = [];
-    // text
-    userContent.push({ type: "text", text: lastUser || "Hallo! Hilfe mit meiner Pflanze, bitte." });
-    // images (absolute alebo public supabase URLs)
+    // zostavíme multimodal message – akceptuj http aj data: URL
+    const userContent = [{ type: "text", text: lastUser || "Hallo! Hilfe mit meiner Pflanze, bitte." }];
     for (const url of images) {
-      if (typeof url === "string" && url.startsWith("http")) {
+      if (typeof url === "string" && (url.startsWith("http") || url.startsWith("data:"))) {
         userContent.push({ type: "image_url", image_url: { url, detail: "low" } });
       }
     }
@@ -47,19 +37,13 @@ Output formát:
       temperature: 0.4,
       messages: [
         { role: "system", content: system },
-        // voliteľný kontext z tvojej appky (napr. užívateľove rastliny)
         ...(context?.plant
           ? [{
               role: "system",
-              content: `Kontext Nutzerpflanze: Art=${context.plant.species||"Unbekannt"}, Standort=${context.plant.light||"?"}, Gießen=${context.plant.watering||"?"}, Letzte Aktionen=${context.plant.lastActions||"?"}`
+              content: `Kontext Nutzerpflanze: Art=${context.plant.species||"?"}, Standort=${context.plant.light||"?"}, Gießen=${context.plant.watering||"?"}, Letzte Aktionen=${context.plant.lastActions||"?"}`
             }]
           : []),
-        // históriu (assistant/user) nechávame
-        ...messages.filter(m => m.role === "assistant" || m.role === "user").slice(-6).map(m => ({
-          role: m.role,
-          content: m.content
-        })),
-        // aktuálny vstup ako multimodal
+        ...messages.filter(m => m.role === "assistant" || m.role === "user").slice(-6),
         { role: "user", content: userContent }
       ]
     };
@@ -79,7 +63,6 @@ Output formát:
     }
     const data = await r.json();
     const text = data?.choices?.[0]?.message?.content || "Entschuldige, ich konnte gerade nichts finden.";
-
     res.status(200).json({ reply: text, lang: languageHint });
   } catch (e) {
     console.error(e);
@@ -87,12 +70,10 @@ Output formát:
   }
 }
 
-// veľmi jednoduchá jazyková heuristika
 function detectLang(s="") {
   const t = s.toLowerCase();
-  if (/[äöüß]/.test(t) || /\b(warum|pflanze|gießen|gie\u00dfen|dünger|düngen|blatt|gelb)\b/.test(t)) return "de";
+  if (/[äöüß]/.test(t) || /\b(warum|pflanze|gießen|düngen|blatt|gelb)\b/.test(t)) return "de";
   if (/\b(why|plant|water|fertilizer|leaf)\b/.test(t)) return "en";
-  if (/[áéíóúýčďěňřšťůž]/.test(t)) return "sk";
-  if (/[áéíóúĺľňťž]/.test(t)) return "sk";
+  if (/[áéíóúýčďěňřšťůžĺľňť]/.test(t)) return "sk";
   return "de";
 }
