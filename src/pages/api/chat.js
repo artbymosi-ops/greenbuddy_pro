@@ -1,4 +1,5 @@
-// src/pages/api/chat.js
+import Layout from "@/components/Layout";
+export default function Page(){ return <Layout title="Názov"><div className="card"><h2>Názov</h2><p>Obsah príde neskôr.</p></div></Layout>; }// src/pages/api/chat.js
 export const config = { api: { bodyParser: { sizeLimit: "10mb" } } };
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
