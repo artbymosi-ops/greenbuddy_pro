@@ -278,3 +278,5 @@ h3 { font-size: 18px; margin: 0 0 4px; }
   0%,100% { transform: scaleY(1); }
   50%     { transform: scaleY(1.7); }
 }
+.btn svg { transition: transform .15s ease; }
+.btn:hover svg { transform: translateY(-1px) scale(1.04); }
