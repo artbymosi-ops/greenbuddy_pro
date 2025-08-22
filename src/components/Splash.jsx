@@ -1,6 +1,6 @@
-// src/components/Splash.jsx
 import { useEffect } from "react";
 import MonsteraLeafLottie from "@/components/MonsteraLeafLottie";
+import PotBuddy from "@/components/PotBuddy";
 
 export default function Splash({ next = "/auth/login" }) {
   useEffect(() => {
@@ -16,27 +16,16 @@ export default function Splash({ next = "/auth/login" }) {
 
   return (
     <div className="wrap">
-      <img
-        src="/logo.svg"
-        alt=""
-        className="logo"
-        onError={(e) => (e.currentTarget.style.display = "none")}
-      />
-
-      <h1 aria-label={title} className="type">
-        {title.split("").map((ch, i) => (
-          <span key={i} style={{ animationDelay: `${i * 90}ms` }}>
-            {ch}
-          </span>
-        ))}
-      </h1>
-
+      <h1 className="type" aria-label={title}>{title}</h1>
       <p className="tag">deine spielerische Pflanzen-App</p>
 
-      <div className="stage" aria-hidden>
-        <div className="anim">
-          <MonsteraLeafLottie showFace size={320} />
-        </div>
+      {/* Stage pre animáciu */}
+      <div className="stage">
+        {/* LIST – vyrastá z okraja črepníka (trochu posunutý hore) */}
+        <MonsteraLeafLottie size={320} y={-70} speed={1} />
+
+        {/* KVETINÁČ – s tváričkou */}
+        <PotBuddy size={260} mood="happy" />
       </div>
 
       <style jsx>{`
@@ -44,22 +33,18 @@ export default function Splash({ next = "/auth/login" }) {
           min-height: 100svh;
           display: grid;
           place-items: center;
-          padding: 24px 16px 32px;
-          gap: 8px;
+          padding: 24px 16px 40px;
+          gap: 10px;
           background: radial-gradient(120% 120% at 50% 0%, #e9f7ed 0%, #f4fbf6 60%, #f7fff9 100%);
         }
-        .logo { width: 72px; height: 72px; margin-bottom: 4px; }
         .type { font-weight: 800; font-size: clamp(40px, 8vw, 72px); line-height: 1; margin: 0; }
-        .type span { display: inline-block; opacity: 0; transform: translateY(20px) scale(0.96);
-          animation: letterIn .65s cubic-bezier(.2,.9,.2,1.1) forwards; }
-        .type span:nth-child(odd) { transform: translateY(24px) scale(0.96); }
-        .tag { margin: 6px 0 2px; opacity: 0; animation: fade .9s ease 1.9s forwards; }
+        .tag { opacity: .9; margin: 4px 0 8px; }
 
-        .stage { width: min(560px, 92vw); height: 320px; display: grid; place-items: center; }
-        .anim { position: relative; width: 360px; height: 360px; }
-
-        @keyframes letterIn { to { opacity: 1; transform: translateY(0) scale(1); } }
-        @keyframes fade { to { opacity: .8; } }
+        .stage {
+          position: relative;
+          width: min(520px, 92vw);
+          height: 420px;
+        }
       `}</style>
     </div>
   );
