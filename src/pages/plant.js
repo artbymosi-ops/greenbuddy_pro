@@ -2,6 +2,15 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
+import MonsteraLeafLottie from "@/components/MonsteraLeafLottie";
+
+export default function PlantPage() {
+  return (
+    <div style={{ width: 300, height: 300 }}>
+      <MonsteraLeafLottie />
+    </div>
+  );
+}
 import Plant2D from "@/components/Plant2D";
 
 // 3D komponent len na klientovi
