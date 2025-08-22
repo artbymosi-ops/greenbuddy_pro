@@ -1,98 +1,124 @@
-import { useEffect, useMemo, useState } from "react";
-import PotBuddy from "@/components/PotBuddy";
-import MonsteraLeafLottie from "@/components/MonsteraLeafLottie";
+// src/pages/plant.js
+import { useEffect, useState } from "react";
+import Layout from "@/components/Layout";
+import Plant2D from "@/components/Plant2D";
 
-export default function Plant2D({ state, lastAction }) {
-  const { level, hydration, nutrients, spray, mood } = state;
+export default function PlantPage() {
+  // režim hry (zatím len 2D – 3D môžeš doplniť neskôr)
+  const [mode] = useState("2d");
 
-  // meno (bez SSR chyby)
-  const [name, setName] = useState("Monstera");
+  // herný stav
+  const [st, setSt] = useState({
+    hydration: 100,
+    nutrients: 60,
+    spray: 90,
+    xp: 0,
+    level: 1,
+    mood: "happy",
+  });
+
+  const [lastAction, setLastAction] = useState(null);
+
+  // Level-up + nálada
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const saved = localStorage.getItem("gb_plant_name");
-    if (saved) setName(saved);
-  }, []);
-  const saveName = (n) => {
-    setName(n);
-    if (typeof window !== "undefined") localStorage.setItem("gb_plant_name", n);
+    const need = st.level * 40;
+    if (st.xp >= need) {
+      setSt((s) => ({ ...s, xp: s.xp - need, level: s.level + 1 }));
+    }
+    const mood =
+      st.hydration < 30 || st.nutrients < 30 || st.spray < 30 ? "sad" : "happy";
+    if (mood !== st.mood) setSt((s) => ({ ...s, mood }));
+  }, [st.xp, st.hydration, st.nutrients, st.spray]); // eslint-disable-line
+
+  // helpery
+  const addXp = (n) => setSt((s) => ({ ...s, xp: s.xp + n }));
+
+  const water = () => {
+    setSt((s) => ({ ...s, hydration: Math.min(100, s.hydration + 18) }));
+    addXp(6);
+    setLastAction("water");
+  };
+  const feed = () => {
+    setSt((s) => ({ ...s, nutrients: Math.min(100, s.nutrients + 14) }));
+    addXp(6);
+    setLastAction("feed");
+  };
+  const spray = () => {
+    setSt((s) => ({ ...s, spray: Math.min(100, s.spray + 12) }));
+    addXp(6);
+    setLastAction("spray");
+  };
+  const repot = () => {
+    setSt((s) => ({
+      ...s,
+      nutrients: Math.min(100, s.nutrients + 10),
+      hydration: Math.max(60, s.hydration - 8),
+    }));
+    addXp(10);
+    setLastAction("repot");
   };
 
-  // hlášky
-  const line = useMemo(() => {
-    if (hydration < 30) return "Prosím napi ma 💧";
-    if (nutrients < 30) return "Potrebujem živiny 🧪";
-    if (spray < 30) return "Trochu sprchy by padlo vhod 🌫️";
-    if (lastAction === "water") return "Ďakujem za vodu! 💦";
-    if (lastAction === "feed") return "Mhmm… chutí! 🌱";
-    if (lastAction === "spray") return "Osvieženie! ✨";
-    if (lastAction === "repot") return "Nový domov, super! 🪴";
-    return "Som Monstera a som šťastná 🌿";
-  }, [hydration, nutrients, spray, lastAction]);
-
-  // koľko listov (rastie s levelom)
-  const leaves = Math.min(1 + Math.floor(level / 2), 8);
-
   return (
-    <div className="stage">
-      {/* bublina */}
-      <div className="bubble">{line}</div>
+    <Layout title="Meine Pflanze">
+      <main style={{ padding: 16, maxWidth: 960, margin: "0 auto" }}>
+        <section className="card" style={{ marginBottom: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <h2 style={{ marginTop: 0, marginBottom: 6 }}>Monstera</h2>
+              <p className="subtitle" style={{ margin: 0 }}>
+                Stimmung: {st.mood === "happy" ? "glücklich" : "traurig"} • Level{" "}
+                {st.level} • XP {st.xp}/{st.level * 40}
+              </p>
+            </div>
+            <a className="btn ghost" href="/minigames">🎮 Minihry</a>
+          </div>
 
-      {/* listy (od stredu zeminy) */}
-      {Array.from({ length: leaves }).map((_, i) => (
-        <MonsteraLeafLottie key={i} order={i} level={level} size={300} />
-      ))}
+          {/* Stage – 2D rastlinka */}
+          <div style={{ marginTop: 12 }}>
+            {mode === "2d" && <Plant2D state={st} lastAction={lastAction} />}
+          </div>
 
-      {/* kvetináč s tváričkou – „rozpráva“, keď je bublina kritická alebo po akcii */}
-      <PotBuddy
-        size={260}
-        mood={mood === "happy" ? "happy" : "sad"}
-        talking={/Prosím|Potrebujem|Osvieženie|Ďakujem|Mhmm|Nový/.test(line)}
-        name={name}
-      />
+          {/* Stavové karty */}
+          <div className="grid grid-3" style={{ marginTop: 14 }}>
+            <div className="card">
+              <strong>Hydration</strong>
+              <div>{st.hydration}</div>
+            </div>
+            <div className="card">
+              <strong>Nährstoffe</strong>
+              <div>{st.nutrients}</div>
+            </div>
+            <div className="card">
+              <strong>Spray</strong>
+              <div>{st.spray}</div>
+            </div>
+          </div>
 
-      {/* meno – edit */}
-      <div className="nameEdit">
-        <input
-          value={name}
-          onChange={(e) => saveName(e.target.value)}
-          aria-label="Názov rastlinky"
-        />
-      </div>
-
-      <style jsx>{`
-        .stage {
-          position: relative;
-          width: 100%;
-          padding-top: 62%;
-          background: #f4fbf6;
-          border-radius: 18px;
-          overflow: hidden;
-        }
-        .bubble {
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-          top: 6%;
-          background: #233a2f;
-          color: #fff;
-          padding: 10px 16px;
-          border-radius: 999px;
-          font-weight: 600;
-          box-shadow: 0 10px 28px rgba(0,0,0,.12);
-        }
-        .nameEdit {
-          position: absolute;
-          top: 0; right: 8px;
-        }
-        .nameEdit input {
-          background: #ffffffd8;
-          border: 1px solid #dce8de;
-          border-radius: 10px;
-          padding: 6px 10px;
-          font-weight: 700;
-          width: 120px;
-        }
-      `}</style>
-    </div>
+          {/* Akčné tlačidlá */}
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              marginTop: 16,
+              alignItems: "center",
+            }}
+          >
+            <button className="btn" onClick={water}>💧 Gießen</button>
+            <button className="btn" onClick={feed}>🧪 Düngen</button>
+            <button className="btn" onClick={spray}>🌫️ Sprühen</button>
+            <button className="btn ghost" onClick={repot}>🪴 Umtopfen</button>
+          </div>
+        </section>
+      </main>
+    </Layout>
   );
-  }
+            }
