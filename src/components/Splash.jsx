@@ -1,17 +1,17 @@
 // src/components/Splash.jsx
-import Head from "next/head";
 import { useEffect } from "react";
 import MonsteraLeafLottie from "@/components/MonsteraLeafLottie";
 import PotBuddy from "@/components/PotBuddy";
 
 export default function Splash({ next = "/auth/login" }) {
-  // Auto-preskočenie po krátkej chvíli
   useEffect(() => {
     const seen =
       typeof window !== "undefined" && localStorage.getItem("gb_seen_splash");
     const t = setTimeout(() => {
-      if (!seen) localStorage.setItem("gb_seen_splash", "1");
-      window.location.replace(next);
+      if (!seen && typeof window !== "undefined") {
+        localStorage.setItem("gb_seen_splash", "1");
+      }
+      if (typeof window !== "undefined") window.location.replace(next);
     }, 2800);
     return () => clearTimeout(t);
   }, [next]);
@@ -19,37 +19,22 @@ export default function Splash({ next = "/auth/login" }) {
   const title = "GreenBuddy";
 
   return (
-    <>
-      {/* Playful font */}
-      <Head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap"
-          rel="stylesheet"
-        />
-      </Head>
+    <div className="wrap">
+      {/* Hravý naskakujúci nadpis */}
+      <h1 aria-label={title} className="type">
+        {title.split("").map((ch, i) => (
+          <span key={i} style={{ animationDelay: `${i * 70}ms` }}>
+            {ch}
+          </span>
+        ))}
+      </h1>
 
-      <div className="wrap">
-        {/* Naskakujúci, hravý nadpis */}
-        <h1 className="type" aria-label={title}>
-          {title.split("").map((ch, i) => (
-            <span
-              key={i}
-              className="ch"
-              style={{ animationDelay: `${i * 70}ms` }}
-            >
-              {ch}
-            </span>
-          ))}
-        </h1>
+      <p className="tag">deine spielerische Pflanzen-App</p>
 
-        {/* Tagline pilulka */}
-        <p className="tag">deine spielerische Pflanzen-App</p>
-
-        {/* Stage – list vyrastá zo zeminy a kvetináč má úsmev */}
-        <div className="stage">
-          <MonsteraLeafLottie size={300} y={-34} speed={1} />
-          <PotBuddy size={260} mood="happy" />
-        </div>
+      {/* Stage – pot + list vyrastajúci zo zeminy */}
+      <div className="stage">
+        <MonsteraLeafLottie size={280} level={3} order={0} />
+        <PotBuddy size={220} mood="happy" />
       </div>
 
       <style jsx>{`
@@ -58,7 +43,7 @@ export default function Splash({ next = "/auth/login" }) {
           display: grid;
           place-items: center;
           padding: 24px 16px 40px;
-          gap: 10px;
+          gap: 12px;
           background: radial-gradient(
             120% 120% at 50% 0%,
             #e9f7ed 0%,
@@ -66,74 +51,46 @@ export default function Splash({ next = "/auth/login" }) {
             #f7fff9 100%
           );
         }
-
-        /* Nadpis – „balónikové“ písmo s pop/wiggle efektom */
         .type {
           margin: 0;
-          font-family: "Baloo 2", system-ui, -apple-system, Segoe UI, Roboto,
-            "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
-            "Segoe UI Emoji";
           font-weight: 800;
-          font-size: clamp(44px, 9vw, 86px);
-          line-height: 0.95;
-          letter-spacing: 0.5px;
-          color: #1f2e24;
-          text-shadow: 0 2px 0 #dfeee4;
-        }
-        .type .ch {
+          font-size: clamp(44px, 10vw, 84px);
+          line-height: 1;
+          letter-spacing: 1px;
           display: inline-block;
-          transform-origin: 60% 70%;
-          animation: pop 420ms cubic-bezier(0.22, 1, 0.36, 1) both,
-            wiggle 2400ms ease-in-out infinite 600ms;
         }
-        .type .ch:nth-child(2n) {
-          animation-delay: 90ms, 690ms;
+        .type span {
+          display: inline-block;
+          transform: translateY(12px) scale(0.9);
+          opacity: 0;
+          filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.08));
+          animation: pop 520ms cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
         }
-        .type .ch:nth-child(3n) {
-          animation-delay: 180ms, 720ms;
-        }
-
         @keyframes pop {
-          0% {
-            transform: translateY(20px) scale(0.6) rotate(-6deg);
-            opacity: 0;
-          }
           60% {
-            transform: translateY(-4px) scale(1.06) rotate(1deg);
+            transform: translateY(-6px) scale(1.06) rotate(-1deg);
             opacity: 1;
           }
           100% {
-            transform: translateY(0) scale(1) rotate(0deg);
+            transform: translateY(0) scale(1);
+            opacity: 1;
           }
         }
-        @keyframes wiggle {
-          0%,
-          100% {
-            transform: translateY(0) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-2px) rotate(0.6deg);
-          }
-        }
-
         .tag {
-          margin: 4px 0 8px;
-          padding: 8px 14px;
-          border-radius: 999px;
-          background: #2b3d33;
+          margin: 0;
+          padding: 10px 18px;
+          background: #2b3f34;
           color: #fff;
+          border-radius: 999px;
           font-weight: 600;
-          letter-spacing: 0.2px;
-          box-shadow: 0 8px 24px rgba(19, 37, 28, 0.12);
+          box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
         }
-
         .stage {
           position: relative;
           width: min(520px, 92vw);
           height: 420px;
-          overflow: hidden;
         }
       `}</style>
-    </>
+    </div>
   );
 }
