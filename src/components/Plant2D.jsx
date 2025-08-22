@@ -1,101 +1,195 @@
-// src/components/Plant2D.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MonsteraLeafLottie from "@/components/MonsteraLeafLottie";
 import PotBuddy from "@/components/PotBuddy";
 
-/**
- * 2D rastlinka:
- * - listy vyrastajú od stopky (MonsteraLeafLottie to rieši rastom + segmentami)
- * - počet listov rastie s levelom/size
- * - listy sú orezané na „scéne“, aby nepretŕčali mimo kvetináča
- * - PotBuddy má oči/ústa, žmurká a „hovorí“ podľa lastAction
- */
-export default function Plant2D({
-  state = { level: 1, mood: "happy", size: 0 },
-  lastAction = null,
-}) {
-  const level = state?.level ?? 1;
-  const sizeStage = 460;           // výška scény
-  const potSize = 300;
+const xpNeed = (lvl) => lvl * 40;
+const clamp = (n, a=0, b=100) => Math.max(a, Math.min(b, n));
 
-  // koľko listov – podľa size (ak je) alebo levelu
-  const nLeaves = useMemo(() => {
-    const base = state?.size ?? Math.max(0, level - 1);
-    return Math.min(1 + Math.floor(base / 1) + 1, 7); // 2..7 listov
-  }, [level, state?.size]);
+export default function Plant2D() {
+  const [name, setName] = useState(() => localStorage.getItem("plant_name") || "Monstera");
+  const [mode, setMode] = useState("happy"); // pre PotBuddy: happy | sad | speaking
 
-  // pripravené offsety pre X (cyklujú sa ak je viac listov)
-  const leafOffsets = useMemo(
-    () => [-120, -60, 0, 60, 120, -30, 90],
-    []
-  );
+  const [st, setSt] = useState({
+    hydration: 100,
+    nutrients: 60,
+    spray: 90,
+    xp: 0,
+    level: 1,
+  });
+  const [lastAction, setLastAction] = useState(null);
+  const audio = useRef(null);
 
-  // bublina „reči“ – text podľa poslednej akcie
-  const [speech, setSpeech] = useState("");
+  // mini „píp“ zvuk
   useEffect(() => {
-    if (!lastAction) return;
-    const lines = {
-      water: "Danke fürs Gießen! 💧",
-      feed: "Lecker Dünger! 🌱",
-      spray: "Ahh, erfrischend! 🌫️",
-      repot: "Neues Zuhause, juhu! 🪴",
-    };
-    setSpeech(lines[lastAction] ?? "");
-    const t = setTimeout(() => setSpeech(""), 2600);
-    return () => clearTimeout(t);
-  }, [lastAction]);
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    audio.current = ctx;
+    return () => ctx.close();
+  }, []);
+  const beep = (freq=880, t=0.07) => {
+    const ctx = audio.current; if (!ctx) return;
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = freq;
+    o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.001, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t);
+    o.start(); o.stop(ctx.currentTime + t);
+  };
+
+  // level-up + nálada
+  useEffect(() => {
+    let cur = st;
+    while (cur.xp >= xpNeed(cur.level)) {
+      cur = { ...cur, xp: cur.xp - xpNeed(cur.level), level: cur.level + 1 };
+      beep(1200, .09);
+    }
+    if (cur !== st) setSt(cur);
+
+    const sad = cur.hydration < 30 || cur.nutrients < 30 || cur.spray < 30;
+    setMode(sad ? "sad" : "happy");
+  }, [st.xp, st.hydration, st.nutrients, st.spray]); // eslint-disable-line
+
+  // akcie
+  const act = (type) => {
+    setSt((s) => {
+      const n = { ...s };
+      if (type === "water")     n.hydration = clamp(s.hydration + 18);
+      if (type === "feed")      n.nutrients = clamp(s.nutrients + 14);
+      if (type === "spray")     n.spray     = clamp(s.spray + 12);
+      if (type === "repot")    { n.nutrients = clamp(s.nutrients + 10); n.hydration = clamp(s.hydration - 8, 40, 100); }
+      n.xp += type === "repot" ? 10 : 6;
+      return n;
+    });
+    setLastAction(type);
+    setMode("speaking");
+    beep();
+    setTimeout(() => setMode("happy"), 600);
+  };
+
+  // textové hlášky (a hlas)
+  const message = useMemo(() => {
+    const want = [];
+    if (st.hydration < 30) want.push("vodu");
+    if (st.nutrients < 30) want.push("hnojivo");
+    if (st.spray < 30)     want.push("spršku");
+    if (!want.length) return `Som ${name} a som šťastná 🌿`;
+    if (want.length === 1) return `Prosím, ${want[0]}!`;
+    if (want.length === 2) return `Prosím, ${want[0]} a ${want[1]}!`;
+    return "Prosím, všetko! 🌧️🧪🌫️";
+  }, [st, name]);
+
+  useEffect(() => {
+    if (!("speechSynthesis" in window)) return;
+    const u = new SpeechSynthesisUtterance(message);
+    u.lang = "sk-SK";
+    u.rate = 1.05;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+    return () => window.speechSynthesis.cancel();
+  }, [message]);
+
+  // počet listov podľa levelu (max 6)
+  const leaves = Math.min(1 + Math.floor(st.level / 2), 6);
+
+  // uloženie mena
+  useEffect(() => {
+    localStorage.setItem("plant_name", name);
+  }, [name]);
 
   return (
-    <div className="plantWrap">
+    <div>
+      {/* HLAVIČKA s menom a XP */}
+      <div style={{ display:"flex", alignItems:"baseline", gap:12, justifyContent:"space-between" }}>
+        <div>
+          <h2 style={{ margin: "0 0 4px" }}>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              aria-label="Meno rastlinky"
+              style={{
+                font: "inherit", fontWeight: 800, border: "none", background: "transparent",
+                borderBottom: "2px solid #b9d7c0", outline: "none", padding: "2px 4px", borderRadius: 6
+              }}
+            />
+          </h2>
+          <div style={{ opacity:.8 }}>
+            Stimmung: {mode === "sad" ? "traurig" : "glücklich"} • Level {st.level} • XP {st.xp}/{xpNeed(st.level)}
+          </div>
+        </div>
+        <a className="btn ghost" href="/minigames">🎮 Minihry</a>
+      </div>
+
+      {/* STAGE */}
       <div className="stage">
-        {/* LISTY – postupne väčšie a s oneskorením */}
-        {Array.from({ length: nLeaves }).map((_, i) => {
-          const base = 220;           // počiatočná veľkosť
-          const inc = 36;             // prírastok veľkosti na ďalší list
-          const size = base + i * inc;
-          const x = leafOffsets[i % leafOffsets.length];
-          const delay = i * 240;      // kaskádový nástup
-          const flip = i % 2 === 1;
+        {/* listy – vyrastajú postupne, každý trochu väčší */}
+        {Array.from({ length: leaves }).map((_, i) => {
+          const k = i - (leaves - 1) / 2;               // rozloženie okolo stredu
+          const spread = 60;                            // vodorovné rozostupy
+          const size = 220 + i * 26;                    // rastúca veľkosť
           return (
             <MonsteraLeafLottie
               key={i}
               size={size}
-              x={x}
-              y={-90}
-              delay={delay}
-              growFrom={0.65}
+              x={k * spread}
+              y={-36}
+              growFrom={0.55}
               growTo={1}
+              delay={i * 240}
+              flip={k < 0}
               speed={0.95}
-              flip={flip}
             />
           );
         })}
 
-        {/* KVETINÁČ s tváričkou – ostáva na mieste, môže „hovoriť“ */}
-        <PotBuddy size={potSize} mood={state?.mood ?? "happy"} speak={speech} />
+        {/* kvetináč s tvárou */}
+        <PotBuddy size={280} mood={mode === "speaking" ? "speaking" : mode} />
+
+        {/* bublina s hláškou */}
+        <div className="bubble">{message}</div>
+      </div>
+
+      {/* stavové kartičky */}
+      <div className="grid">
+        <div className="card"><strong>Hydration</strong><div>{st.hydration}</div></div>
+        <div className="card"><strong>Nährstoffe</strong><div>{st.nutrients}</div></div>
+        <div className="card"><strong>Spray</strong><div>{st.spray}</div></div>
+      </div>
+
+      {/* akcie */}
+      <div className="actions">
+        <button className="btn" onClick={() => act("water")}>💧 Gießen</button>
+        <button className="btn" onClick={() => act("feed")}>🧪 Düngen</button>
+        <button className="btn" onClick={() => act("spray")}>🌫️ Sprühen</button>
+        <button className="btn ghost" onClick={() => act("repot")}>🪴 Umtopfen</button>
       </div>
 
       <style jsx>{`
-        .plantWrap {
-          width: min(560px, 94vw);
-          margin: 0 auto;
-        }
         .stage {
           position: relative;
-          height: ${sizeStage}px;
-          /* dôležité: listy nepreliezajú mimo „scénu“,
-             ale spodok necháme jemne otvorený pre vyrastanie */
+          width: min(560px, 96vw);
+          height: 420px;
+          margin: 14px auto 8px;
+          border-radius: 20px;
+          background: radial-gradient(120% 100% at 50% 0%, #edf7f0 0%, #f7fff9 60%, #f7fff9 100%);
           overflow: hidden;
-          /* trochu „vyrežeme“ vnútro tak, aby listy vizuálne vychádzali od stopky
-             a nepretŕčali cez horný okraj črepníka */
-          clip-path: inset(-40px 0 70px 0);
-          background: radial-gradient(120% 130% at 50% 0%,
-            rgba(233,247,237,.35) 0%,
-            rgba(244,251,246,.2) 60%,
-            rgba(247,255,249,.15) 100%);
-          border-radius: 24px;
         }
+        .bubble {
+          position: absolute;
+          left: 50%; top: 16px; transform: translateX(-50%);
+          background: #2b3d33; color: #fff; padding: 8px 14px; border-radius: 999px;
+          font-size: 14px;
+          box-shadow: 0 6px 16px rgba(0,0,0,.08);
+          animation: pop .25s ease-out;
+          pointer-events: none;
+          max-width: calc(100% - 24px); white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
+        }
+        @keyframes pop { from { transform: translateX(-50%) scale(.9); opacity:.0 } to { transform: translateX(-50%) scale(1); opacity:1 } }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0; }
+        .card { background: #fff; border-radius: 16px; padding: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.06); text-align:center; }
+        .actions { display:flex; gap:12px; flex-wrap:wrap; margin-top: 8px; }
+        .btn { background:#2f6b3f; color:#fff; border:none; padding:10px 14px; border-radius:14px; font-weight:600; }
+        .btn.ghost { background: #fff; color:#2f6b3f; border:2px solid #2f6b3f; }
       `}</style>
     </div>
   );
-}
+        }
