@@ -2,15 +2,6 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
-import MonsteraLeafLottie from "@/components/MonsteraLeafLottie";
-
-export default function PlantPage() {
-  return (
-    <div style={{ width: 300, height: 300 }}>
-      <MonsteraLeafLottie />
-    </div>
-  );
-}
 import Plant2D from "@/components/Plant2D";
 
 // 3D komponent len na klientovi
@@ -46,9 +37,10 @@ export default function PlantPage() {
     const mood =
       st.hydration < 30 || st.nutrients < 30 || st.spray < 30 ? "sad" : "happy";
     if (mood !== st.mood) setSt((s) => ({ ...s, mood }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st.xp, st.hydration, st.nutrients, st.spray]);
 
-  // Helpery
+  // Helpery akcií
   const addXp = (n) => setSt((s) => ({ ...s, xp: s.xp + n }));
 
   const water = () => {
@@ -80,21 +72,34 @@ export default function PlantPage() {
     <Layout title="Meine Pflanze">
       <main style={{ padding: 16, maxWidth: 960, margin: "0 auto" }}>
         <section className="card" style={{ marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
             <div>
               <h2 style={{ marginTop: 0 }}>GreenBuddy – Monstera</h2>
               <p className="subtitle">
-                Stimmung: {st.mood === "happy" ? "glücklich" : "traurig"} • Level {st.level} • XP{" "}
-                {st.xp}/{st.level * 40}
+                Stimmung: {st.mood === "happy" ? "glücklich" : "traurig"} • Level{" "}
+                {st.level} • XP {st.xp}/{st.level * 40}
               </p>
             </div>
 
             {/* Prepínač 2D/3D */}
             <div style={{ display: "flex", gap: 8 }}>
-              <button className={`btn ${mode === "2d" ? "" : "ghost"}`} onClick={() => setMode("2d")}>
+              <button
+                className={`btn ${mode === "2d" ? "" : "ghost"}`}
+                onClick={() => setMode("2d")}
+              >
                 🌿 2D
               </button>
-              <button className={`btn ${mode === "3d" ? "" : "ghost"}`} onClick={() => setMode("3d")}>
+              <button
+                className={`btn ${mode === "3d" ? "" : "ghost"}`}
+                onClick={() => setMode("3d")}
+              >
                 🌱 3D
               </button>
             </div>
@@ -125,26 +130,16 @@ export default function PlantPage() {
             </div>
           </div>
 
-          {/* Tlačidlá */}
+          {/* Tlačidlá akcií */}
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
-            <button className="btn" onClick={water}>
-              💧 Gießen
-            </button>
-            <button className="btn" onClick={feed}>
-              🧪 Düngen
-            </button>
-            <button className="btn" onClick={spray}>
-              🌫️ Sprühen
-            </button>
-            <button className="btn ghost" onClick={repot}>
-              🪴 Umtopfen
-            </button>
-            <a className="btn" href="/minigames">
-              🎮 Minihry
-            </a>
+            <button className="btn" onClick={water}>💧 Gießen</button>
+            <button className="btn" onClick={feed}>🧪 Düngen</button>
+            <button className="btn" onClick={spray}>🌫️ Sprühen</button>
+            <button className="btn ghost" onClick={repot}>🪴 Umtopfen</button>
+            <a className="btn" href="/minigames">🎮 Minihry</a>
           </div>
         </section>
       </main>
     </Layout>
   );
-}
+    }
