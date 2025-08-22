@@ -1,29 +1,25 @@
-// src/components/MonsteraLeafLottie.jsx
 import { useEffect, useRef } from "react";
 
 export default function MonsteraLeafLottie({
   src = "/anim/monstera-leaf.json",
-  size = 260,
+  size = 240,
   order = 0,
   level = 1,
+  soilCenter = { xPct: 50, yPct: 64 }, // kde je zemina v kontajneri (percentá)
 }) {
   const boxRef = useRef(null);
 
   useEffect(() => {
     let anim;
-
-    const load = async () => {
-      // počkáme kým sa načíta window.lottie z CDN
+    const run = async () => {
       if (!window.lottie) {
-        await new Promise((resolve) => {
+        await new Promise((r) => {
           const s = document.createElement("script");
-          s.src =
-            "https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js";
-          s.onload = resolve;
+          s.src = "https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js";
+          s.onload = r;
           document.body.appendChild(s);
         });
       }
-
       const lottie = window.lottie;
       const box = boxRef.current;
       if (!box) return;
@@ -36,44 +32,33 @@ export default function MonsteraLeafLottie({
         path: src,
       });
 
+      // jemný „rast“ od stopky
+      const base = 0.55 + Math.min(level, 10) * 0.045 + order * 0.04;
       box.style.transformOrigin = "50% 100%";
-      const baseScale = 0.55 + Math.min(level, 10) * 0.045 + order * 0.04;
-
       box.animate(
-        [
-          { transform: `scale(${baseScale - 0.18})` },
-          { transform: `scale(${baseScale})` },
-        ],
-        {
-          duration: 800,
-          easing: "cubic-bezier(.2,.9,.2,1)",
-          fill: "forwards",
-          delay: order * 140,
-        }
+        [{ transform: `scale(${base - 0.18})` }, { transform: `scale(${base})` }],
+        { duration: 800, easing: "cubic-bezier(.2,.9,.2,1)", fill: "forwards", delay: order * 140 }
       );
 
       setTimeout(() => anim.playSegments([19, 49], true), order * 120);
-
       const onComplete = () => {
         anim.removeEventListener("complete", onComplete);
         anim.loop = true;
-        anim.playSegments([78, 88], true);
+        anim.playSegments([78, 88], true); // skrátený hojda segment
         anim.setSpeed(0.9);
       };
       anim.addEventListener("complete", onComplete);
     };
-
-    load();
+    run();
 
     return () => {
-      try {
-        anim?.destroy();
-      } catch {}
+      try { anim?.destroy(); } catch {}
     };
   }, [src, level, order]);
 
-  const angle = (-25 + order * 14) * (Math.PI / 180);
-  const radius = 40 + order * 12;
+  // vejárovité rozloženie okolo stredu zeminy
+  const angle = (-28 + order * 14) * (Math.PI / 180);
+  const radius = 34 + order * 12;
   const x = Math.cos(angle) * radius;
   const y = -Math.sin(angle) * radius;
 
@@ -81,8 +66,9 @@ export default function MonsteraLeafLottie({
     <div
       style={{
         position: "absolute",
-        left: `calc(50% + ${x}px - ${size / 2}px)`,
-        top: `calc(64% + ${y}px - ${size}px)`,
+        // ukotvenie do stredu zeminy
+        left: `calc(${soilCenter.xPct}% + ${x}px - ${size / 2}px)`,
+        top: `calc(${soilCenter.yPct}% + ${y}px - ${size}px)`,
         width: size,
         height: size,
         pointerEvents: "none",
