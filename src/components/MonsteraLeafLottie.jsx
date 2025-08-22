@@ -1,28 +1,36 @@
 // src/components/MonsteraLeafLottie.jsx
 import { useEffect, useRef } from "react";
-import Lottie from "lottie-react";
-import monsteraAnim from "@/anim/monstera-leaf.json"; // import JSON priamo
 
 export default function MonsteraLeafLottie({
+  src = "/anim/monstera-leaf.json",
   size = 260,
-  order = 0,         // poradie listu (0…)
-  level = 1,         // pre veľkosť
+  order = 0,
+  level = 1,
 }) {
   const boxRef = useRef(null);
 
-  // vypočítame mierku podľa levelu a order
-  const baseScale = 0.55 + Math.min(level, 10) * 0.045 + order * 0.04;
-
-  // pozície okolo stredu zeminy (vejárovito)
-  const angle = (-25 + order * 14) * (Math.PI / 180);
-  const radius = 40 + order * 12;
-  const x = Math.cos(angle) * radius;
-  const y = -Math.sin(angle) * radius;
-
   useEffect(() => {
-    if (boxRef.current) {
-      boxRef.current.style.transformOrigin = "50% 100%";
-      boxRef.current.animate(
+    let anim;
+
+    (async () => {
+      // dynamicky import -> iba v prehliadači
+      const lottie = (await import("lottie-web")).default;
+
+      const box = boxRef.current;
+      if (!box) return;
+
+      anim = lottie.loadAnimation({
+        container: box,
+        renderer: "svg",
+        loop: false,
+        autoplay: false,
+        path: src,
+      });
+
+      box.style.transformOrigin = "50% 100%";
+      const baseScale = 0.55 + Math.min(level, 10) * 0.045 + order * 0.04;
+
+      box.animate(
         [
           { transform: `scale(${baseScale - 0.18})` },
           { transform: `scale(${baseScale})` },
@@ -34,8 +42,29 @@ export default function MonsteraLeafLottie({
           delay: order * 140,
         }
       );
-    }
-  }, [baseScale, order]);
+
+      setTimeout(() => anim.playSegments([19, 49], true), order * 120);
+
+      const onComplete = () => {
+        anim.removeEventListener("complete", onComplete);
+        anim.loop = true;
+        anim.playSegments([78, 88], true);
+        anim.setSpeed(0.9);
+      };
+      anim.addEventListener("complete", onComplete);
+    })();
+
+    return () => {
+      try {
+        anim?.destroy();
+      } catch {}
+    };
+  }, [src, level, order]);
+
+  const angle = (-25 + order * 14) * (Math.PI / 180);
+  const radius = 40 + order * 12;
+  const x = Math.cos(angle) * radius;
+  const y = -Math.sin(angle) * radius;
 
   return (
     <div
@@ -48,14 +77,7 @@ export default function MonsteraLeafLottie({
         pointerEvents: "none",
       }}
     >
-      <div ref={boxRef} style={{ width: "100%", height: "100%" }}>
-        <Lottie
-          animationData={monsteraAnim}
-          loop
-          autoplay
-          style={{ width: "100%", height: "100%" }}
-        />
-      </div>
+      <div ref={boxRef} style={{ width: "100%", height: "100%" }} />
     </div>
   );
 }
