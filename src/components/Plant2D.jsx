@@ -1,98 +1,99 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PotBuddy from "@/components/PotBuddy";
 import MonsteraLeafLottie from "@/components/MonsteraLeafLottie";
 
 export default function Plant2D({ state, lastAction }) {
-  const { level, hydration, nutrients, spray, mood } = state;
-
-  // meno (bez SSR chyby)
+  // meno – čítaj až na klientovi
   const [name, setName] = useState("Monstera");
   useEffect(() => {
     if (typeof window === "undefined") return;
     const saved = localStorage.getItem("gb_plant_name");
     if (saved) setName(saved);
   }, []);
-  const saveName = (n) => {
-    setName(n);
-    if (typeof window !== "undefined") localStorage.setItem("gb_plant_name", n);
+  const saveName = (v) => {
+    setName(v);
+    if (typeof window !== "undefined") localStorage.setItem("gb_plant_name", v);
   };
 
-  // hlášky
-  const line = useMemo(() => {
-    if (hydration < 30) return "Prosím napi ma 💧";
-    if (nutrients < 30) return "Potrebujem živiny 🧪";
-    if (spray < 30) return "Trochu sprchy by padlo vhod 🌫️";
-    if (lastAction === "water") return "Ďakujem za vodu! 💦";
-    if (lastAction === "feed") return "Mhmm… chutí! 🌱";
-    if (lastAction === "spray") return "Osvieženie! ✨";
-    if (lastAction === "repot") return "Nový domov, super! 🪴";
-    return "Som Monstera a som šťastná 🌿";
-  }, [hydration, nutrients, spray, lastAction]);
+  // rozprávanie pri akciách
+  const [talk, setTalk] = useState(false);
+  useEffect(() => {
+    if (!lastAction) return;
+    setTalk(true);
+    const t = setTimeout(() => setTalk(false), 900);
+    return () => clearTimeout(t);
+  }, [lastAction]);
 
-  // koľko listov (rastie s levelom)
-  const leaves = Math.min(1 + Math.floor(level / 2), 8);
+  // listy – koľko ich zobraziť podľa levelu
+  const leavesCount = Math.min(1 + Math.floor((state.level - 1) / 1), 7);
 
   return (
     <div className="stage">
-      {/* bublina */}
-      <div className="bubble">{line}</div>
+      {/* bublina + meno */}
+      <div className="bubble">{pickLine(state, lastAction)}</div>
+      <div className="name">
+        <input value={name} onChange={(e) => saveName(e.target.value)} />
+      </div>
 
-      {/* listy (od stredu zeminy) */}
-      {Array.from({ length: leaves }).map((_, i) => (
-        <MonsteraLeafLottie key={i} order={i} level={level} size={300} />
-      ))}
+      {/* listy (pod tvárou) */}
+      <div className="leaves">
+        {Array.from({ length: leavesCount }).map((_, i) => (
+          <MonsteraLeafLottie key={i} order={i} level={state.level}
+            soilCenter={{ xPct: 50, yPct: 64 }} size={260}/>
+        ))}
+      </div>
 
-      {/* kvetináč s tváričkou – „rozpráva“, keď je bublina kritická alebo po akcii */}
-      <PotBuddy
-        size={260}
-        mood={mood === "happy" ? "happy" : "sad"}
-        talking={/Prosím|Potrebujem|Osvieženie|Ďakujem|Mhmm|Nový/.test(line)}
-        name={name}
-      />
-
-      {/* meno – edit */}
-      <div className="nameEdit">
-        <input
-          value={name}
-          onChange={(e) => saveName(e.target.value)}
-          aria-label="Názov rastlinky"
-        />
+      {/* črepník s tvárou navrchu */}
+      <div className="pot">
+        <PotBuddy size={260} talk={talk} mood={state.mood}/>
       </div>
 
       <style jsx>{`
         .stage {
           position: relative;
-          width: 100%;
-          padding-top: 62%;
-          background: #f4fbf6;
-          border-radius: 18px;
+          width: min(480px, 92vw);
+          height: 360px;
+          margin: 0 auto;
+          border-radius: 24px;
+          background: #f5fbf7;
           overflow: hidden;
         }
+        .leaves {
+          position: absolute; inset: 0;
+          /* maska: nech je vidno hlavne to, čo vyrastie nad zeminou */
+          -webkit-mask-image: radial-gradient(120% 90% at 50% 64%, #000 48%, rgba(0,0,0,0) 52%);
+          mask-image: radial-gradient(120% 90% at 50% 64%, #000 48%, rgba(0,0,0,0) 52%);
+        }
+        .pot { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); }
+
         .bubble {
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-          top: 6%;
-          background: #233a2f;
-          color: #fff;
-          padding: 10px 16px;
-          border-radius: 999px;
-          font-weight: 600;
-          box-shadow: 0 10px 28px rgba(0,0,0,.12);
+          position: absolute; left: 20px; top: 16px;
+          max-width: calc(100% - 140px);
+          background: #223a2e; color: #fff;
+          padding: 10px 14px; border-radius: 18px;
+          box-shadow: 0 8px 20px rgba(0,0,0,.12);
+          font-weight: 600; line-height: 1.22;
         }
-        .nameEdit {
-          position: absolute;
-          top: 0; right: 8px;
+        .name {
+          position: absolute; right: 16px; top: 12px;
         }
-        .nameEdit input {
-          background: #ffffffd8;
-          border: 1px solid #dce8de;
-          border-radius: 10px;
-          padding: 6px 10px;
-          font-weight: 700;
-          width: 120px;
+        .name input {
+          border: 0; outline: 0; background: #fff; padding: 6px 12px;
+          border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08);
+          font-weight: 700; min-width: 120px;
         }
       `}</style>
     </div>
   );
+}
+
+function pickLine(st, action) {
+  if (action === "water") return "Ďakujem, super napitá! 💧";
+  if (action === "feed")  return "Mmm… chutí! 🌱";
+  if (action === "spray") return "Osvieženie! ✨";
+  if (action === "repot") return "Nový domov, super! 🪴";
+  if (st.hydration < 30) return "Prosím napiť 💧";
+  if (st.nutrients < 30) return "Potrebujem živiny 🌿";
+  if (st.spray < 30) return "Trochu rosiť? 🌫️";
+  return "Som Monstera a som šťastná 🌿";
 }
