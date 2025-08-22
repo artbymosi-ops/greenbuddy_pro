@@ -1,6 +1,10 @@
 // src/components/Splash.jsx
 import { useEffect } from "react";
-import MonsteraToon from "@/components/MonsteraToon";
+import MonsteraLeafLottie from "@/components/MonsteraLeafLottie";
+
+<div style={{ position: "relative", width: 360, height: 360 }}>
+  <MonsteraLeafLottie showFace size={320} />
+</div>
 
 export default function Splash({ next = "/auth/login" }) {
   useEffect(() => {
