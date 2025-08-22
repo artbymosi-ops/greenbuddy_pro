@@ -1,125 +1,105 @@
-import { useEffect, useMemo } from "react";
-
-/**
- * Kvetináč so zeminou + tvárička.
- * Props: size, mood ("happy"|"sad"), talking (bool), name (string)
- */
 export default function PotBuddy({
-  size = 240,
-  mood = "happy",
-  talking = false,
-  name,
+  size = 260,
+  talk = false,        // keď true, ústa sa otvárajú
+  mood = "happy",      // "happy" | "sad"
+  soil = true,
 }) {
-  const eyeOffset = size * 0.19;
-  const eyeR = size * 0.085;
-  const pupilR = eyeR * 0.55;
-
-  // farby
-  const pot = { base: "#9b5a2e", rim: "#7c4926", shine: "#c07a46" };
-  const soil = { top: "#5b3f2b" };
-
-  // pre „smile“ vs „sad“
-  const mouthD = useMemo(() => {
-    const w = size * 0.42;
-    const y = size * 0.58;
-    if (mood === "sad") return `M ${size/2-w/2} ${y} Q ${size/2} ${y-20}, ${size/2+w/2} ${y}`;
-    return `M ${size/2-w/2} ${y} Q ${size/2} ${y+20}, ${size/2+w/2} ${y}`;
-  }, [mood, size]);
-
+  const w = size, h = size * 0.78;
   return (
-    <div style={{ position: "relative", width: size, height: size }}>
-      <svg viewBox="0 0 200 200" style={{ width: "100%", height: "100%" }}>
-        {/* tieň */}
-        <ellipse cx="100" cy="178" rx="56" ry="12" fill="#dfeadf" />
-
-        {/* telo kvetináča (mierny lesk) */}
+    <div style={{ position: "relative", width: w, height: h, margin: "0 auto" }}>
+      {/* tieň */}
+      <div style={{
+        position: "absolute", left: "50%", bottom: -8, width: w*0.6, height: w*0.18,
+        transform: "translateX(-50%)", background: "radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.18), rgba(0,0,0,0))",
+        filter: "blur(6px)", opacity: .6,
+      }}/>
+      {/* črepník */}
+      <svg viewBox="0 0 260 200" width={w} height={h} style={{ position:"absolute" }}>
+        {/* vrchný okraj s leskom */}
+        <ellipse cx="130" cy="40" rx="110" ry="26" fill="#7a4a24"/>
+        <ellipse cx="130" cy="40" rx="103" ry="20" fill="#5f3b1d"/>
+        {/* telo s jemným prechodom */}
+        <path d="M35 40 L225 40 L205 170 Q130 190 55 170 Z"
+              fill="url(#g)"/>
         <defs>
-          <linearGradient id="potGrad" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor={pot.base} />
-            <stop offset="100%" stopColor="#8d532a" />
+          <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#8b572a"/>
+            <stop offset="1" stopColor="#7a4a24"/>
           </linearGradient>
         </defs>
-
-        {/* rim + otvor */}
-        <ellipse cx="100" cy="60" rx="70" ry="16" fill={pot.rim} />
-        <ellipse cx="100" cy="62" rx="62" ry="14" fill={soil.top} />
-        {/* telo */}
-        <path
-          d="M40 60 C48 160, 152 160, 160 60 Z"
-          fill="url(#potGrad)"
-          stroke="#6c3f1f"
-        />
-        {/* lesk */}
-        <path
-          d="M58 84 C60 140, 78 150, 94 154"
-          fill="none"
-          stroke={pot.shine}
-          opacity=".22"
-          strokeWidth="6"
-          strokeLinecap="round"
-        />
-
-        {/* oči */}
-        <g transform="translate(0,8)">
-          {/* biele */}
-          <circle cx={100 - eyeOffset} cy={98} r={eyeR} fill="#fff" />
-          <circle cx={100 + eyeOffset} cy={98} r={eyeR} fill="#fff" />
-          {/* zreničky */}
-          <circle className="pupil" cx={100 - eyeOffset + 2} cy={100} r={pupilR} fill="#222" />
-          <circle className="pupil" cx={100 + eyeOffset + 2} cy={100} r={pupilR} fill="#222" />
-          {/* „iskra“ */}
-          <circle cx={100 - eyeOffset - 2} cy={95} r={pupilR*0.28} fill="#fff" />
-          <circle cx={100 + eyeOffset - 2} cy={95} r={pupilR*0.28} fill="#fff" />
-          {/* viečka – žmurkajú */}
-          <rect className="lid" x={100-eyeOffset-eyeR} y={88-eyeR} width={eyeR*2} height={eyeR*2} rx={eyeR} fill="#9b5a2e" />
-          <rect className="lid" x={100+eyeOffset-eyeR} y={88-eyeR} width={eyeR*2} height={eyeR*2} rx={eyeR} fill="#9b5a2e" />
-        </g>
-
-        {/* úsmev + jazyk (otváranie pri talking) */}
-        <path className={`mouth ${talking ? "talk" : ""}`} d={mouthD} fill="none" stroke="#141414" strokeWidth="6" strokeLinecap="round" />
-        {mood !== "sad" && (
-          <path className={`tongue ${talking ? "talk" : ""}`} d="M90 145 q10 8 20 0" fill="#e44" />
-        )}
+        {/* jemný lesk vľavo */}
+        <path d="M60 60 Q70 140 60 160" stroke="rgba(255,255,255,.18)" strokeWidth="8" fill="none" />
       </svg>
 
-      {name && (
+      {/* zemina */}
+      {soil && (
         <div style={{
-          position: "absolute", top: -28, left: "50%", transform: "translateX(-50%)",
-          background: "#1f3a2e", color: "#fff", padding: "6px 12px", borderRadius: 999,
-          fontWeight: 700, boxShadow: "0 8px 22px rgba(0,0,0,.12)"
-        }}>
-          {name}
-        </div>
+          position: "absolute", left: "50%", top: h*0.34,
+          width: w*0.84, height: w*0.22, transform: "translateX(-50%)",
+          borderRadius: "50%", background: "linear-gradient(#5b4128,#4a3421)",
+          boxShadow: "inset 0 6px 0 rgba(0,0,0,.15)",
+        }} />
       )}
 
+      {/* OČI */}
+      <Eye x={w*0.36} y={h*0.5} />
+      <Eye x={w*0.64} y={h*0.5} />
+
+      {/* ÚSTA */}
+      <Mouth x={w*0.5} y={h*0.64} talk={talk} mood={mood} />
+    </div>
+  );
+}
+
+function Eye({ x, y }) {
+  const s = 38;
+  return (
+    <div style={{ position: "absolute", left: x - s/2, top: y - s/2, width: s, height: s }}>
+      <div style={{
+        position: "absolute", inset: 0, borderRadius: "50%", background: "#fff",
+        boxShadow: "0 2px 2px rgba(0,0,0,.1)"
+      }}/>
+      <div style={{
+        position: "absolute", left: "44%", top: "46%", width: s*0.38, height: s*0.38,
+        borderRadius: "50%", background: "#1c1b1a"
+      }}/>
+      {/* lesk */}
+      <div style={{
+        position: "absolute", left: "56%", top: "26%", width: s*0.14, height: s*0.14,
+        borderRadius: "50%", background: "rgba(255,255,255,.9)"
+      }}/>
+      {/* žmurkanie */}
+      <div className="lid" style={{
+        position: "absolute", left: 0, right: 0, top: 0, height: 0,
+        background: "#7a4a24", borderBottomLeftRadius: s/2, borderBottomRightRadius: s/2,
+        animation: "blink 4.2s infinite",
+      }}/>
       <style jsx>{`
-        .pupil { animation: look 6s ease-in-out infinite; }
-        @keyframes look {
-          0%,100% { transform: translate(0,0); }
-          25% { transform: translate(2px,1px); }
-          50% { transform: translate(-1px,1px); }
-          75% { transform: translate(1px,-1px); }
-        }
-        .lid {
-          animation: blink 4.6s infinite;
-          transform-origin: center 100px;
-          opacity: .001; /* prekryje len pri bliku */
-        }
         @keyframes blink {
-          0%, 92%, 100% { opacity: .001; }
-          94%, 96% { opacity: 1; }
-        }
-        .mouth.talk { animation: speak 280ms ease-in-out infinite; }
-        .tongue.talk { animation: tongue 280ms ease-in-out infinite; }
-        @keyframes speak {
-          0%,100% { transform: scaleY(1); }
-          50% { transform: scaleY(1.35); }
-        }
-        @keyframes tongue {
-          0%,100% { transform: translateY(0); }
-          50% { transform: translateY(2px); }
+          0%, 92%, 100%   { height: 0 }
+          94%             { height: ${Math.round(s*0.82)}px }
+          96%             { height: 0 }
         }
       `}</style>
     </div>
   );
 }
+
+function Mouth({ x, y, talk, mood }) {
+  const w = 130, h = 34;                 // rozumné hranice
+  const open = talk ? 18 : 6;            // otvorenie pri rozprávaní
+  const sad = mood === "sad";
+  return (
+    <svg width={w} height={h+18} style={{ position:"absolute", left:x-w/2, top:y-h/2 }}>
+      {/* pery */}
+      <path
+        d={`M10 ${sad?20:18} Q ${w/2} ${sad?8:open} ${w-10} ${sad?20:18}`}
+        stroke="#111" strokeWidth="12" fill="none" strokeLinecap="round"/>
+      {/* jazyk */}
+      {!sad && (
+        <path d={`M${w/2-12} ${open+10} Q ${w/2} ${open+18} ${w/2+12} ${open+10}`}
+              fill="#e14c5a"/>
+      )}
+    </svg>
+  );
+          }
