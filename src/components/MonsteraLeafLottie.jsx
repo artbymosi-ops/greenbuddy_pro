@@ -12,10 +12,19 @@ export default function MonsteraLeafLottie({
   useEffect(() => {
     let anim;
 
-    (async () => {
-      // dynamicky import -> iba v prehliadači
-      const lottie = (await import("lottie-web")).default;
+    const load = async () => {
+      // počkáme kým sa načíta window.lottie z CDN
+      if (!window.lottie) {
+        await new Promise((resolve) => {
+          const s = document.createElement("script");
+          s.src =
+            "https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js";
+          s.onload = resolve;
+          document.body.appendChild(s);
+        });
+      }
 
+      const lottie = window.lottie;
       const box = boxRef.current;
       if (!box) return;
 
@@ -52,7 +61,9 @@ export default function MonsteraLeafLottie({
         anim.setSpeed(0.9);
       };
       anim.addEventListener("complete", onComplete);
-    })();
+    };
+
+    load();
 
     return () => {
       try {
