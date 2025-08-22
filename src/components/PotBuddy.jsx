@@ -1,83 +1,73 @@
-// src/components/PotBuddy.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
-export default function PotBuddy({
-  size = 260,
-  mood = "happy",
-  speak = "",            // ak má niečo povedať, pošli reťazec
-}) {
-  const [blinking, setBlinking] = useState(false);
-  const [talking, setTalking] = useState(false);
+/**
+ * Milý kvetináč s očami, úsmevom a žmurkaním.
+ * props: size, mood: "happy" | "sad" | "speaking"
+ */
+export default function PotBuddy({ size = 240, mood = "happy" }) {
+  const eyeY = mood === "sad" ? 2 : 0;
+  const mouthCurve = mood === "sad" ? -10 : 14;
+  const mouthOpen = mood === "speaking" ? 10 : 4;
 
-  // žmurkanie
-  useEffect(() => {
-    let t;
-    const loop = () => {
-      setBlinking(true);
-      setTimeout(() => setBlinking(false), 120);
-      t = setTimeout(loop, 2200 + Math.random() * 1800);
-    };
-    t = setTimeout(loop, 1200);
-    return () => clearTimeout(t);
-  }, []);
-
-  // „rozprávanie“ – podľa dĺžky textu
-  useEffect(() => {
-    if (!speak) return;
-    setTalking(true);
-    const dur = Math.min(3500, 500 + speak.length * 70);
-    const t = setTimeout(() => setTalking(false), dur);
-    return () => clearTimeout(t);
-  }, [speak]);
-
-  const eyeY = blinking ? 6 : 0;          // padne viečko
-  const mouthH = talking ? 14 : 4;        // otvorí sa ústa
+  // drobné náhodné hýbanie zreničiek
+  const pupils = useMemo(
+    () => ({
+      left:  { x: Math.random() * 3 - 1.5, y: Math.random() * 2 - 1 },
+      right: { x: Math.random() * 3 - 1.5, y: Math.random() * 2 - 1 },
+    }),
+    [mood]
+  );
 
   return (
-    <div style={{ position: "absolute", inset: "auto 0 0 0", height: size }}>
-      <svg viewBox="0 0 400 260" width="100%" height="100%">
-        {/* črepník – trochu vyšší */}
-        <defs>
-          <radialGradient id="sh" cx="50%" cy="10%" r="80%">
-            <stop offset="0" stopColor="#9c5a2d" stopOpacity="0.35" />
-            <stop offset="1" stopColor="#000" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <ellipse cx="200" cy="240" rx="120" ry="18" fill="url(#sh)" />
+    <div style={{ width: size, height: size, position: "relative", margin: "0 auto" }}>
+      <svg viewBox="0 0 200 200" width="100%" height="100%">
+        {/* tieň */}
+        <ellipse cx="100" cy="186" rx="56" ry="10" fill="#d7e6d7"/>
 
+        {/* črepník (trapez) */}
         <path
-          d="M40 40 h320 l-36 180 a32 32 0 0 1-32 24 H108 a32 32 0 0 1-32-24 Z"
-          fill="#8a4f26"
+          d="M35 70 L165 70 L150 175 Q100 185 50 175 Z"
+          fill="#8d5126"
         />
-        <path
-          d="M40 40c20 22 360 22 320 0 0 0-18-30-160-30S40 40 40 40Z"
-          fill="#a15a2c"
-        />
+        {/* horný okraj */}
+        <ellipse cx="100" cy="70" rx="70" ry="16" fill="#a76433"/>
+
+        {/* zemina */}
+        <ellipse cx="100" cy="74" rx="62" ry="12" fill="#5b3d26"/>
 
         {/* oči */}
-        <g transform="translate(110,150)">
-          <g transform={`translate(0,${eyeY})`}>
-            <circle cx="0" cy="0" r="26" fill="#fff" />
-            <circle cx="0" cy="0" r="12" fill="#222" />
-          </g>
-          <g transform={`translate(180,${eyeY})`}>
-            <circle cx="0" cy="0" r="26" fill="#fff" />
-            <circle cx="0" cy="0" r="12" fill="#222" />
-          </g>
+        <g>
+          <circle cx="70" cy={120 + eyeY} r="16" fill="#fff"/>
+          <circle cx="130" cy={120 + eyeY} r="16" fill="#fff"/>
+          <circle cx={70 + pupils.left.x}  cy={120 + eyeY + pupils.left.y}  r="7" fill="#121212"/>
+          <circle cx={130 + pupils.right.x} cy={120 + eyeY + pupils.right.y} r="7" fill="#121212"/>
+          {/* viečka na žmurkanie */}
+          <rect className="lid" x="54" y="104" width="32" height="32" fill="#8d5126" rx="16"/>
+          <rect className="lid" x="114" y="104" width="32" height="32" fill="#8d5126" rx="16"/>
         </g>
 
-        {/* ústa */}
+        {/* úsmev */}
         <path
-          d={`M135 ${190} q65 ${mouthH} 130 0`}
-          fill="none"
-          stroke="#111"
-          strokeWidth="10"
-          strokeLinecap="round"
+          d={`M70 150 Q100 ${150 + mouthCurve} 130 150`}
+          stroke="#111" strokeWidth="6" fill="none" strokeLinecap="round"
         />
-        {talking && (
-          <path d={`M200 ${196 + mouthH / 2} q16 10 32 0`} fill="#f25" />
+        {/* jazyk keď „rozpráva“ */}
+        {mood === "speaking" && (
+          <path d={`M93 ${150 - mouthOpen/2} q7 ${mouthOpen} 14 0`} fill="#e84e5b"/>
         )}
       </svg>
+
+      <style jsx>{`
+        .lid {
+          animation: blink 4.5s infinite;
+          transform-origin: center top;
+          opacity: 0; /* skryté, len počas žmurknutia viditeľné */
+        }
+        @keyframes blink {
+          0%, 92%, 100% { opacity: 0; transform: scaleY(0.0); }
+          93%, 95%      { opacity: 1; transform: scaleY(1.0); }
+        }
+      `}</style>
     </div>
   );
-      }
+}
