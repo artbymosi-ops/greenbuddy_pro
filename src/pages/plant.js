@@ -1,20 +1,29 @@
 // src/pages/plant.js
-import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/Layout";
 import Plant2D from "@/components/Plant2D";
 
-// 3D len na klientovi (ak komponent existuje)
-const Plant3D = dynamic(() => import("@/components/Plant3D"), {
-  ssr: false,
-  loading: () => <div style={{ height: 320 }} />,
-});
-
 export default function PlantPage() {
-  // 2D / 3D režim
-  const [mode, setMode] = useState("2d"); // "2d" | "3d"
+  // meno – načítame až na klientovi
+  const [name, setName] = useState("Monstera");
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("gb_plant_name");
+      if (saved) setName(saved);
+    }
+  }, []);
+  const rename = (e) => {
+    const v = e.target.value.slice(0, 20);
+    setName(v);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("gb_plant_name", v);
+    }
+  };
 
-  // Herný stav
+  // režim – už len 2D
+  const mode = "2d";
+
+  // herný stav
   const [st, setSt] = useState({
     hydration: 100,
     nutrients: 60,
@@ -22,60 +31,61 @@ export default function PlantPage() {
     xp: 0,
     level: 1,
     mood: "happy", // "happy" | "sad"
+    size: 0,       // vizuálny rast
   });
-
-  // posledná akcia pre animácie/hlášky
   const [lastAction, setLastAction] = useState(null);
 
-  // Načítať stav z localStorage (len na klientovi)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = localStorage.getItem("gb_plant_state");
-      if (raw) setSt((s) => ({ ...s, ...JSON.parse(raw) }));
-    } catch {}
-  }, []);
+  // hovorené hlášky
+  const [bubble, setBubble] = useState("");
+  const speak = (text, ms = 1800) => {
+    setBubble(text);
+    window.clearTimeout((speak)._t);
+    (speak)._t = window.setTimeout(() => setBubble(""), ms);
+  };
 
-  // Ukladať stav po zmenách
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      localStorage.setItem("gb_plant_state", JSON.stringify(st));
-    } catch {}
-  }, [st]);
+  // odvodené hodnoty
+  const xpNeed = useMemo(() => st.level * 40, [st.level]);
 
-  // Level-up + nálada
+  // level-up + nálada
   useEffect(() => {
-    const need = st.level * 40; // XP potrebná na level-up
-    if (st.xp >= need) {
+    if (st.xp >= xpNeed) {
       setSt((s) => ({
         ...s,
-        xp: s.xp - need,
+        xp: s.xp - xpNeed,
         level: s.level + 1,
+        size: Math.min((s.size ?? 0) + 1, 6),
       }));
+      speak("Rastiem! 🌱");
     }
-    const mood =
+    const moodNow =
       st.hydration < 30 || st.nutrients < 30 || st.spray < 30 ? "sad" : "happy";
-    if (mood !== st.mood) setSt((s) => ({ ...s, mood }));
-  }, [st.xp, st.hydration, st.nutrients, st.spray]); // zmeny, ktoré toto ovplyvnia
+    if (moodNow !== st.mood) {
+      setSt((s) => ({ ...s, mood: moodNow }));
+      speak(moodNow === "happy" ? "Som šťastná 🌿" : "Necítim sa dobre 😢");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [st.xp, st.hydration, st.nutrients, st.spray]);
 
-  // Helpery akcií
+  // helpery
   const addXp = (n) => setSt((s) => ({ ...s, xp: s.xp + n }));
 
   const water = () => {
     setSt((s) => ({ ...s, hydration: Math.min(100, s.hydration + 18) }));
     addXp(6);
     setLastAction("water");
+    speak("Ďakujem za vodu 💧");
   };
   const feed = () => {
     setSt((s) => ({ ...s, nutrients: Math.min(100, s.nutrients + 14) }));
     addXp(6);
     setLastAction("feed");
+    speak("Mňam, živiny! 🧪");
   };
   const spray = () => {
     setSt((s) => ({ ...s, spray: Math.min(100, s.spray + 12) }));
     addXp(6);
     setLastAction("spray");
+    speak("Osvieženie! ✨");
   };
   const repot = () => {
     setSt((s) => ({
@@ -85,62 +95,78 @@ export default function PlantPage() {
     }));
     addXp(10);
     setLastAction("repot");
+    speak("Nový domov, super! 🪴");
   };
 
   return (
-    <Layout title="Greenbuddy">
-      <main style={{ padding: 16, maxWidth: 960, margin: "0 auto" }}>
-        <section className="card" style={{ marginBottom: 16 }}>
+    <Layout title="Meine Pflanze">
+      <main style={{ padding: 16, maxWidth: 980, margin: "0 auto" }}>
+        <section className="card" style={{ marginBottom: 16, position: "relative" }}>
           <div
             style={{
               display: "flex",
-              alignItems: "center",
+              alignItems: "flex-start",
               justifyContent: "space-between",
               gap: 12,
               flexWrap: "wrap",
             }}
           >
             <div>
-              <h2 style={{ margin: "4px 0 0" }}>Monstera</h2>
-              <p className="subtitle" style={{ margin: "6px 0 0" }}>
-                Stimmung: {st.mood === "happy" ? "glücklich" : "traurig"} • Level{" "}
-                {st.level} • XP {st.xp}/{st.level * 40}
+              <h2 style={{ marginTop: 0 }}>Monstera</h2>
+              <p className="subtitle">
+                Stimmung: {st.mood === "happy" ? "glücklich" : "traurig"} • Level {st.level} • XP{" "}
+                {st.xp}/{xpNeed}
               </p>
             </div>
 
             {/* odkaz na minihry */}
-            <a className="btn ghost" href="/minigames" style={{ whiteSpace: "nowrap" }}>
+            <a className="btn ghost" href="/minigames" style={{ alignSelf: "center" }}>
               🎮 Minihry
             </a>
           </div>
 
-          {/* prepínač 2D/3D */}
-          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <button
-              className={`btn ${mode === "2d" ? "" : "ghost"}`}
-              onClick={() => setMode("2d")}
-            >
-              🌿 2D
-            </button>
-            <button
-              className={`btn ${mode === "3d" ? "" : "ghost"}`}
-              onClick={() => setMode("3d")}
-            >
-              🌱 3D
-            </button>
+          {/* meno rastlinky */}
+          <div style={{ margin: "6px 0 10px" }}>
+            <label className="subtitle" htmlFor="pname">
+              Názov:
+            </label>{" "}
+            <input
+              id="pname"
+              value={name}
+              onChange={rename}
+              placeholder="Zadaj meno"
+              className="input"
+              style={{ minWidth: 180, fontWeight: 600 }}
+            />
           </div>
 
-          {/* Rastlinka */}
-          <div style={{ marginTop: 12 }}>
-            {mode === "2d" ? (
-              <Plant2D state={st} lastAction={lastAction} />
-            ) : (
-              <Plant3D state={st} lastAction={lastAction} />
-            )}
+          {/* bublina s hláškou */}
+          {bubble && (
+            <div
+              style={{
+                position: "absolute",
+                left: 24,
+                top: 88,
+                background: "#1f3a2e",
+                color: "white",
+                padding: "10px 14px",
+                borderRadius: 20,
+                boxShadow: "0 10px 30px rgba(0,0,0,.12)",
+                zIndex: 2,
+                maxWidth: 280,
+              }}
+            >
+              {bubble}
+            </div>
+          )}
+
+          {/* Rastlinka (iba 2D) */}
+          <div style={{ marginTop: 8 }}>
+            <Plant2D state={st} lastAction={lastAction} />
           </div>
 
           {/* Stavové karty */}
-          <div className="grid grid-3" style={{ marginTop: 14 }}>
+          <div className="grid grid-3" style={{ marginTop: 12 }}>
             <div className="card">
               <strong>Hydration</strong>
               <div>{st.hydration}</div>
@@ -155,7 +181,7 @@ export default function PlantPage() {
             </div>
           </div>
 
-          {/* Tlačidlá akcií */}
+          {/* Akčné tlačidlá */}
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
             <button className="btn" onClick={water}>
               💧 Gießen
@@ -172,6 +198,17 @@ export default function PlantPage() {
           </div>
         </section>
       </main>
+
+      <style jsx>{`
+        .input {
+          appearance: none;
+          border: none;
+          outline: none;
+          background: #f4f8f4;
+          padding: 10px 12px;
+          border-radius: 12px;
+        }
+      `}</style>
     </Layout>
   );
-  }
+                         }
