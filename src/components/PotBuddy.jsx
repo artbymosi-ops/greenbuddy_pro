@@ -1,71 +1,123 @@
 import { useEffect, useMemo } from "react";
 
 /**
- * Milý kvetináč s očami, úsmevom a žmurkaním.
- * props: size, mood: "happy" | "sad" | "speaking"
+ * Kvetináč so zeminou + tvárička.
+ * Props: size, mood ("happy"|"sad"), talking (bool), name (string)
  */
-export default function PotBuddy({ size = 240, mood = "happy" }) {
-  const eyeY = mood === "sad" ? 2 : 0;
-  const mouthCurve = mood === "sad" ? -10 : 14;
-  const mouthOpen = mood === "speaking" ? 10 : 4;
+export default function PotBuddy({
+  size = 240,
+  mood = "happy",
+  talking = false,
+  name,
+}) {
+  const eyeOffset = size * 0.19;
+  const eyeR = size * 0.085;
+  const pupilR = eyeR * 0.55;
 
-  // drobné náhodné hýbanie zreničiek
-  const pupils = useMemo(
-    () => ({
-      left:  { x: Math.random() * 3 - 1.5, y: Math.random() * 2 - 1 },
-      right: { x: Math.random() * 3 - 1.5, y: Math.random() * 2 - 1 },
-    }),
-    [mood]
-  );
+  // farby
+  const pot = { base: "#9b5a2e", rim: "#7c4926", shine: "#c07a46" };
+  const soil = { top: "#5b3f2b" };
+
+  // pre „smile“ vs „sad“
+  const mouthD = useMemo(() => {
+    const w = size * 0.42;
+    const y = size * 0.58;
+    if (mood === "sad") return `M ${size/2-w/2} ${y} Q ${size/2} ${y-20}, ${size/2+w/2} ${y}`;
+    return `M ${size/2-w/2} ${y} Q ${size/2} ${y+20}, ${size/2+w/2} ${y}`;
+  }, [mood, size]);
 
   return (
-    <div style={{ width: size, height: size, position: "relative", margin: "0 auto" }}>
-      <svg viewBox="0 0 200 200" width="100%" height="100%">
+    <div style={{ position: "relative", width: size, height: size }}>
+      <svg viewBox="0 0 200 200" style={{ width: "100%", height: "100%" }}>
         {/* tieň */}
-        <ellipse cx="100" cy="186" rx="56" ry="10" fill="#d7e6d7"/>
+        <ellipse cx="100" cy="178" rx="56" ry="12" fill="#dfeadf" />
 
-        {/* črepník (trapez) */}
+        {/* telo kvetináča (mierny lesk) */}
+        <defs>
+          <linearGradient id="potGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={pot.base} />
+            <stop offset="100%" stopColor="#8d532a" />
+          </linearGradient>
+        </defs>
+
+        {/* rim + otvor */}
+        <ellipse cx="100" cy="60" rx="70" ry="16" fill={pot.rim} />
+        <ellipse cx="100" cy="62" rx="62" ry="14" fill={soil.top} />
+        {/* telo */}
         <path
-          d="M35 70 L165 70 L150 175 Q100 185 50 175 Z"
-          fill="#8d5126"
+          d="M40 60 C48 160, 152 160, 160 60 Z"
+          fill="url(#potGrad)"
+          stroke="#6c3f1f"
         />
-        {/* horný okraj */}
-        <ellipse cx="100" cy="70" rx="70" ry="16" fill="#a76433"/>
-
-        {/* zemina */}
-        <ellipse cx="100" cy="74" rx="62" ry="12" fill="#5b3d26"/>
+        {/* lesk */}
+        <path
+          d="M58 84 C60 140, 78 150, 94 154"
+          fill="none"
+          stroke={pot.shine}
+          opacity=".22"
+          strokeWidth="6"
+          strokeLinecap="round"
+        />
 
         {/* oči */}
-        <g>
-          <circle cx="70" cy={120 + eyeY} r="16" fill="#fff"/>
-          <circle cx="130" cy={120 + eyeY} r="16" fill="#fff"/>
-          <circle cx={70 + pupils.left.x}  cy={120 + eyeY + pupils.left.y}  r="7" fill="#121212"/>
-          <circle cx={130 + pupils.right.x} cy={120 + eyeY + pupils.right.y} r="7" fill="#121212"/>
-          {/* viečka na žmurkanie */}
-          <rect className="lid" x="54" y="104" width="32" height="32" fill="#8d5126" rx="16"/>
-          <rect className="lid" x="114" y="104" width="32" height="32" fill="#8d5126" rx="16"/>
+        <g transform="translate(0,8)">
+          {/* biele */}
+          <circle cx={100 - eyeOffset} cy={98} r={eyeR} fill="#fff" />
+          <circle cx={100 + eyeOffset} cy={98} r={eyeR} fill="#fff" />
+          {/* zreničky */}
+          <circle className="pupil" cx={100 - eyeOffset + 2} cy={100} r={pupilR} fill="#222" />
+          <circle className="pupil" cx={100 + eyeOffset + 2} cy={100} r={pupilR} fill="#222" />
+          {/* „iskra“ */}
+          <circle cx={100 - eyeOffset - 2} cy={95} r={pupilR*0.28} fill="#fff" />
+          <circle cx={100 + eyeOffset - 2} cy={95} r={pupilR*0.28} fill="#fff" />
+          {/* viečka – žmurkajú */}
+          <rect className="lid" x={100-eyeOffset-eyeR} y={88-eyeR} width={eyeR*2} height={eyeR*2} rx={eyeR} fill="#9b5a2e" />
+          <rect className="lid" x={100+eyeOffset-eyeR} y={88-eyeR} width={eyeR*2} height={eyeR*2} rx={eyeR} fill="#9b5a2e" />
         </g>
 
-        {/* úsmev */}
-        <path
-          d={`M70 150 Q100 ${150 + mouthCurve} 130 150`}
-          stroke="#111" strokeWidth="6" fill="none" strokeLinecap="round"
-        />
-        {/* jazyk keď „rozpráva“ */}
-        {mood === "speaking" && (
-          <path d={`M93 ${150 - mouthOpen/2} q7 ${mouthOpen} 14 0`} fill="#e84e5b"/>
+        {/* úsmev + jazyk (otváranie pri talking) */}
+        <path className={`mouth ${talking ? "talk" : ""}`} d={mouthD} fill="none" stroke="#141414" strokeWidth="6" strokeLinecap="round" />
+        {mood !== "sad" && (
+          <path className={`tongue ${talking ? "talk" : ""}`} d="M90 145 q10 8 20 0" fill="#e44" />
         )}
       </svg>
 
+      {name && (
+        <div style={{
+          position: "absolute", top: -28, left: "50%", transform: "translateX(-50%)",
+          background: "#1f3a2e", color: "#fff", padding: "6px 12px", borderRadius: 999,
+          fontWeight: 700, boxShadow: "0 8px 22px rgba(0,0,0,.12)"
+        }}>
+          {name}
+        </div>
+      )}
+
       <style jsx>{`
+        .pupil { animation: look 6s ease-in-out infinite; }
+        @keyframes look {
+          0%,100% { transform: translate(0,0); }
+          25% { transform: translate(2px,1px); }
+          50% { transform: translate(-1px,1px); }
+          75% { transform: translate(1px,-1px); }
+        }
         .lid {
-          animation: blink 4.5s infinite;
-          transform-origin: center top;
-          opacity: 0; /* skryté, len počas žmurknutia viditeľné */
+          animation: blink 4.6s infinite;
+          transform-origin: center 100px;
+          opacity: .001; /* prekryje len pri bliku */
         }
         @keyframes blink {
-          0%, 92%, 100% { opacity: 0; transform: scaleY(0.0); }
-          93%, 95%      { opacity: 1; transform: scaleY(1.0); }
+          0%, 92%, 100% { opacity: .001; }
+          94%, 96% { opacity: 1; }
+        }
+        .mouth.talk { animation: speak 280ms ease-in-out infinite; }
+        .tongue.talk { animation: tongue 280ms ease-in-out infinite; }
+        @keyframes speak {
+          0%,100% { transform: scaleY(1); }
+          50% { transform: scaleY(1.35); }
+        }
+        @keyframes tongue {
+          0%,100% { transform: translateY(0); }
+          50% { transform: translateY(2px); }
         }
       `}</style>
     </div>
