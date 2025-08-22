@@ -1,7 +1,29 @@
 // src/components/MonsteraLeafLottie.jsx
 import { useEffect, useRef } from "react";
 import lottie from "lottie-web";
+import { useEffect, useRef } from "react";
 
+export default function MonsteraLeafLottie({ src="/anim/monstera-leaf.json" }) {
+  const boxRef = useRef(null);
+
+  useEffect(() => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js";
+    s.onload = () => {
+      window.lottie.loadAnimation({
+        container: boxRef.current,
+        renderer: "svg",
+        loop: false,
+        autoplay: true,
+        path: src,
+      });
+    };
+    document.head.appendChild(s);
+    return () => s.remove();
+  }, [src]);
+
+  return <div ref={boxRef} style={{ width: "100%", height: "100%" }} />;
+}
 export default function MonsteraLeafLottie({
   size = 220,
   delay = 0,         // oneskorenie rozbalenia v ms (pri viacerých listoch)
