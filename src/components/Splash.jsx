@@ -1,11 +1,14 @@
 // src/components/Splash.jsx
-import { useEffect, useMemo } from "react";
+import Head from "next/head";
+import { useEffect } from "react";
 import MonsteraLeafLottie from "@/components/MonsteraLeafLottie";
 import PotBuddy from "@/components/PotBuddy";
 
 export default function Splash({ next = "/auth/login" }) {
+  // Auto-preskočenie po krátkej chvíli
   useEffect(() => {
-    const seen = typeof window !== "undefined" && localStorage.getItem("gb_seen_splash");
+    const seen =
+      typeof window !== "undefined" && localStorage.getItem("gb_seen_splash");
     const t = setTimeout(() => {
       if (!seen) localStorage.setItem("gb_seen_splash", "1");
       window.location.replace(next);
@@ -14,23 +17,39 @@ export default function Splash({ next = "/auth/login" }) {
   }, [next]);
 
   const title = "GreenBuddy";
-  const chars = useMemo(() => title.split(""), [title]);
 
   return (
-    <div className="wrap">
-      {/* Hravý nadpis */}
-      <h1 className="title" aria-label={title}>
-        {chars.map((ch, i) => (
-          <span key={i} style={{ animationDelay: `${i * 70}ms` }}>{ch}</span>
-        ))}
-      </h1>
+    <>
+      {/* Playful font */}
+      <Head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap"
+          rel="stylesheet"
+        />
+      </Head>
 
-      <p className="tag">deine spielerische Pflanzen-App</p>
+      <div className="wrap">
+        {/* Naskakujúci, hravý nadpis */}
+        <h1 className="type" aria-label={title}>
+          {title.split("").map((ch, i) => (
+            <span
+              key={i}
+              className="ch"
+              style={{ animationDelay: `${i * 70}ms` }}
+            >
+              {ch}
+            </span>
+          ))}
+        </h1>
 
-      {/* Stage */}
-      <div className="stage">
-        <MonsteraLeafLottie size={360} y={-90} growFrom={0.6} growTo={1} />
-        <PotBuddy size={300} speak="Hallo! Ich bin dein GreenBuddy." />
+        {/* Tagline pilulka */}
+        <p className="tag">deine spielerische Pflanzen-App</p>
+
+        {/* Stage – list vyrastá zo zeminy a kvetináč má úsmev */}
+        <div className="stage">
+          <MonsteraLeafLottie size={300} y={-34} speed={1} />
+          <PotBuddy size={260} mood="happy" />
+        </div>
       </div>
 
       <style jsx>{`
@@ -39,37 +58,82 @@ export default function Splash({ next = "/auth/login" }) {
           display: grid;
           place-items: center;
           padding: 24px 16px 40px;
-          gap: 12px;
-          background: radial-gradient(120% 120% at 50% 0%, #e9f7ed 0%, #f4fbf6 60%, #f7fff9 100%);
+          gap: 10px;
+          background: radial-gradient(
+            120% 120% at 50% 0%,
+            #e9f7ed 0%,
+            #f4fbf6 60%,
+            #f7fff9 100%
+          );
         }
-        .title { margin: 0; font-size: clamp(42px, 8.5vw, 74px); font-weight: 800; letter-spacing: .5px; }
-        .title span {
+
+        /* Nadpis – „balónikové“ písmo s pop/wiggle efektom */
+        .type {
+          margin: 0;
+          font-family: "Baloo 2", system-ui, -apple-system, Segoe UI, Roboto,
+            "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+            "Segoe UI Emoji";
+          font-weight: 800;
+          font-size: clamp(44px, 9vw, 86px);
+          line-height: 0.95;
+          letter-spacing: 0.5px;
+          color: #1f2e24;
+          text-shadow: 0 2px 0 #dfeee4;
+        }
+        .type .ch {
           display: inline-block;
-          transform: translateY(24px) rotate(-6deg) scale(.9);
-          opacity: 0;
-          animation: pop .45s cubic-bezier(.2,.9,.2,1) forwards;
+          transform-origin: 60% 70%;
+          animation: pop 420ms cubic-bezier(0.22, 1, 0.36, 1) both,
+            wiggle 2400ms ease-in-out infinite 600ms;
         }
-        .title span:nth-child(odd)  { animation-duration: .52s; }
-        .title span:nth-child(even) { animation-duration: .48s; }
+        .type .ch:nth-child(2n) {
+          animation-delay: 90ms, 690ms;
+        }
+        .type .ch:nth-child(3n) {
+          animation-delay: 180ms, 720ms;
+        }
+
         @keyframes pop {
-          60% { transform: translateY(-6px) rotate(3deg) scale(1.04); opacity: 1; }
-          100%{ transform: translateY(0) rotate(0)   scale(1);    opacity: 1; }
+          0% {
+            transform: translateY(20px) scale(0.6) rotate(-6deg);
+            opacity: 0;
+          }
+          60% {
+            transform: translateY(-4px) scale(1.06) rotate(1deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(0) scale(1) rotate(0deg);
+          }
         }
+        @keyframes wiggle {
+          0%,
+          100% {
+            transform: translateY(0) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-2px) rotate(0.6deg);
+          }
+        }
+
         .tag {
-          margin: 4px 0 6px;
-          padding: 6px 14px;
-          background: #2f3947;
+          margin: 4px 0 8px;
+          padding: 8px 14px;
+          border-radius: 999px;
+          background: #2b3d33;
           color: #fff;
-          border-radius: 18px;
-          font-size: .96rem;
-          opacity: .92;
+          font-weight: 600;
+          letter-spacing: 0.2px;
+          box-shadow: 0 8px 24px rgba(19, 37, 28, 0.12);
         }
+
         .stage {
           position: relative;
           width: min(520px, 92vw);
-          height: 460px; /* vyšší kvôli črepníku */
+          height: 420px;
+          overflow: hidden;
         }
       `}</style>
-    </div>
+    </>
   );
 }
